@@ -18,9 +18,10 @@ MainWindow::MainWindow(QWidget *parent) :
            return;                                         //
        }
 
+
        qtimer = new QTimer(this);                          // instantiate timer
        connect(qtimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdateGUI()));     // associate timer to processFrameAndUpdateGUI
-       qtimer->start(20);
+       qtimer->start(40);
 
 }
 
@@ -89,8 +90,9 @@ void MainWindow::processFrameAndUpdateGUI() {
 
     ui->widget->showImage(imgOriginal);
 
+
     ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgOriginal));           // show images on form labels
-    ui->lblThresh->setPixmap(QPixmap::fromImage(qimgThresh));         //
+ //   ui->lblThresh->setPixmap(QPixmap::fromImage(qimgThresh));         //
 }
 
 

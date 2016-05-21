@@ -6,11 +6,12 @@
 #include <QTimer>
 //#include "modelloader.h"
 #include <QOpenGLTexture>
+#include <QtDebug>
 
 #include<opencv2/core/core.hpp>
 #include<opencv2/highgui/highgui.hpp>
 #include<opencv2/imgproc/imgproc.hpp>
-
+#include "OGL_OCV_common.hpp"
 class MyGLWidget : public QGLWidget
 {
 private:
@@ -38,11 +39,10 @@ protected:
 public:
     MyGLWidget();
     MyGLWidget(QWidget *parent); // Konstruktur noch angeben?
-
+    GLuint backgroundimage ;
     void showImage(cv::Mat image);
-
-
-    cv::Mat img_to_show ;
+    QImage loadTexture2(char *filename, GLuint &textureID);
+    QImage tex;
 };
 
 #endif // MYGLWIDGET_H
