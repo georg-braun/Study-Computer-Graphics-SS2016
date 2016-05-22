@@ -80,14 +80,20 @@ void MainWindow::processFrameAndUpdateGUI() {
                                                                          QString(", y =") + QString::number(v3fCircles[i][1]).rightJustified(4, ' ') +
                                                                          QString(", radius =") + QString::number(v3fCircles[i][2], 'f', 3).rightJustified(7, ' '));
     */
+        qDebug() << QString("ball position x =") + QString::number(v3fCircles[i][0]).rightJustified(4, ' ') +
+                QString(", y =") + QString::number(v3fCircles[i][1]).rightJustified(4, ' ') +
+                QString(", radius =") + QString::number(v3fCircles[i][2], 'f', 3).rightJustified(7, ' ');
+
+        // Kreise im "OpenGL" Bild mit anzeigen?
         cv::circle(imgOriginal, cv::Point((int)v3fCircles[i][0], (int)v3fCircles[i][1]), (int)v3fCircles[i][2], cv::Scalar(0, 0, 255), 3);      // draw red circle around the detected object
         cv::circle(imgOriginal, cv::Point((int)v3fCircles[i][0], (int)v3fCircles[i][1]), 3, cv::Scalar(0, 255, 0), CV_FILLED);                  // draw small green circle at center of detected object
     }
 
+
     QImage qimgOriginal = convertOpenCVMatToQtQImage(imgOriginal);                         // convert from OpenCV Mat to Qt QImage
     QImage qimgThresh = convertOpenCVMatToQtQImage(imgThresh);                       //
 
-
+    ui->widget->sendMakerPos(v3fCircles);
     ui->widget->showImage(imgOriginal);
 
 

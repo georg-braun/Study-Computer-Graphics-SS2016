@@ -7,6 +7,7 @@
 //#include "modelloader.h"
 #include <QOpenGLTexture>
 #include <QtDebug>
+#include <vector>
 
 #include<opencv2/core/core.hpp>
 #include<opencv2/highgui/highgui.hpp>
@@ -28,13 +29,12 @@ protected:
     QImage      mRenderQtImg;           /// Qt image to be rendered
     cv::Mat     mOrigImage;             /// original OpenCV image to be shown
 
-    QColor      mBgColor;		/// Background color
+
     int         mOutH;                  /// Resized Image height
     int         mOutW;                  /// Resized Image width
     float       mImgRatio;             /// height/width ratio
 
-    int         mPosX;                  /// Top left X position to render image in the center of widget
-    int         mPosY;                  /// Top left Y position to render image in the center of widget
+
 
 public:
     MyGLWidget();
@@ -43,6 +43,8 @@ public:
     void showImage(cv::Mat image);
     QImage loadTexture2(char *filename, GLuint &textureID);
     QImage tex;
+    std::vector<cv::Vec3f> v3fCircles ;
+    void sendMakerPos(std::vector<cv::Vec3f> _v3fCircles) ;
 };
 
 #endif // MYGLWIDGET_H
