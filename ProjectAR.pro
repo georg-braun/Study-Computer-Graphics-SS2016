@@ -14,12 +14,10 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    MyGLWidget.cpp \
-    OGL_OCV_common.cpp
+    MyGLWidget.cpp
 
 HEADERS  += mainwindow.h \
-    MyGLWidget.h \
-    OGL_OCV_common.hpp
+    MyGLWidget.h
 
 FORMS    += mainwindow.ui
 
@@ -29,6 +27,7 @@ LIBS += -lopengl32
 INCLUDEPATH += c:\\OpenCV-3.1.0\\opencv\\build\\include
 
 LIBS +=-Lc:\\OpenCV-3.1.0\\mybuild\\lib\\Debug \
+    -lopencv_aruco310d \
     -lopencv_calib3d310d \
     -lopencv_core310d \
     -lopencv_features2d310d \
@@ -46,3 +45,5 @@ LIBS +=-Lc:\\OpenCV-3.1.0\\mybuild\\lib\\Debug \
     -lopencv_video310d \
     -lopencv_videoio310d \
     -lopencv_videostab310d
+
+

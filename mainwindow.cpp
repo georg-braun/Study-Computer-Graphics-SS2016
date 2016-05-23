@@ -3,13 +3,28 @@
 
 #include<QtCore>
 #include<QMessageBox>
-
+#include<string.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    dictonary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50);
+
+    /*
+    // Marker erzeugen und abspeichern
+    cv::Mat matMarkerImg ;
+    std::string name = "";
+    std::string jpg = ".jpg";
+    std::string complete ;
+    for (int i = 0 ; i < 50 ; i++) {
+        complete = std::to_string(i)+jpg;
+        cv::aruco::drawMarker(dictonary,i,200,matMarkerImg,1);
+        cv::imwrite(complete,matMarkerImg);
+    }
+    */
 
     capWebcam.open(0);                  // associate the capture object to the default webcam
 
@@ -25,12 +40,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
+
+
+
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-
-
 
 
 
@@ -44,6 +60,7 @@ void MainWindow::exitProgram() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void MainWindow::processFrameAndUpdateGUI() {
     cv::Mat imgOriginal;                    // original image
+    cv::Mat imgCopy;
     cv::Mat imgHSV;
     cv::Mat imgThreshLow;
     cv::Mat imgThreshHigh;
@@ -57,52 +74,48 @@ void MainWindow::processFrameAndUpdateGUI() {
         return;                                                                     //
     }
 
-    cv::cvtColor(imgOriginal, imgHSV, CV_BGR2HSV);
 
-    cv::inRange(imgHSV, cv::Scalar(0, 155, 155), cv::Scalar(18, 255, 255), imgThreshLow);
-    cv::inRange(imgHSV, cv::Scalar(165, 155, 155), cv::Scalar(179, 255, 255), imgThreshHigh);
 
-    cv::add(imgThreshLow, imgThreshHigh, imgThresh);
 
-    cv::GaussianBlur(imgThresh, imgThresh, cv::Size(3, 3), 0);
+    // ArUco - Marker ;)
+    cv::Ptr<cv::aruco::DetectorParameters> detectorParams = cv::aruco::DetectorParameters::create();
+    std::vector< int > ids;
+    std::vector< std::vector< cv::Point2f > > corners, rejected;
+    std::vector< cv::Vec3d > rvecs, tvecs;
 
-    cv::Mat structuringElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    detectorParams->doCornerRefinement ;    // Feine Ecken (später für Pose Estimation)
 
-    cv::dilate(imgThresh, imgThresh, structuringElement);
-    cv::erode(imgThresh, imgThresh, structuringElement);
+    cv::aruco::detectMarkers(imgOriginal, dictonary, corners, ids, detectorParams, rejected) ;
 
-    std::vector<cv::Vec3f> v3fCircles;                                                                              // declare circles variable
-    cv::HoughCircles(imgThresh, v3fCircles, CV_HOUGH_GRADIENT, 2, imgThresh.rows / 4, 100, 50, 10, 400);      // fill variable circles with all circles in the processed image
+    imgOriginal.copyTo(imgCopy);
 
-    for(unsigned int i = 0; i < v3fCircles.size(); i++) {                                                                                       // for each circle
-    /*
-        ui->txtXYRadius->appendPlainText(QString("ball position x =") + QString::number(v3fCircles[i][0]).rightJustified(4, ' ') +              // print ball position and radius
-                                                                         QString(", y =") + QString::number(v3fCircles[i][1]).rightJustified(4, ' ') +
-                                                                         QString(", radius =") + QString::number(v3fCircles[i][2], 'f', 3).rightJustified(7, ' '));
-    */
-        qDebug() << QString("ball position x =") + QString::number(v3fCircles[i][0]).rightJustified(4, ' ') +
-                QString(", y =") + QString::number(v3fCircles[i][1]).rightJustified(4, ' ') +
-                QString(", radius =") + QString::number(v3fCircles[i][2], 'f', 3).rightJustified(7, ' ');
-
-        // Kreise im "OpenGL" Bild mit anzeigen?
-        cv::circle(imgOriginal, cv::Point((int)v3fCircles[i][0], (int)v3fCircles[i][1]), (int)v3fCircles[i][2], cv::Scalar(0, 0, 255), 3);      // draw red circle around the detected object
-        cv::circle(imgOriginal, cv::Point((int)v3fCircles[i][0], (int)v3fCircles[i][1]), 3, cv::Scalar(0, 255, 0), CV_FILLED);                  // draw small green circle at center of detected object
+    if ( ids.size() > 0 ) {     // Wurden Marker erkannt?
+        cv::aruco::drawDetectedMarkers(imgCopy,corners,ids) ;
     }
 
+    //cv::aruco::calibrateCameraAruco()
 
+
+
+
+
+    // Weitergabe
     QImage qimgOriginal = convertOpenCVMatToQtQImage(imgOriginal);                         // convert from OpenCV Mat to Qt QImage
-    QImage qimgThresh = convertOpenCVMatToQtQImage(imgThresh);                       //
+    QImage qimgCopy = convertOpenCVMatToQtQImage(imgCopy);                       //
 
-    ui->widget->sendMakerPos(v3fCircles);
-    ui->widget->showImage(imgOriginal);
+    //ui->widget->sendMakerPos(v3fCircles);
+    ui->widget->showImage(imgCopy);
 
 
     ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgOriginal));           // show images on form labels
- //   ui->lblThresh->setPixmap(QPixmap::fromImage(qimgThresh));         //
+
+    ui->lblThresh->setPixmap(QPixmap::fromImage(qimgCopy));         //
+
+
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
 QImage MainWindow::convertOpenCVMatToQtQImage(cv::Mat mat) {
     if(mat.channels() == 1) {                                   // if 1 channel (grayscale or black and white) image
         return QImage((uchar*)mat.data, mat.cols, mat.rows, mat.step, QImage::Format_Indexed8);     // return QImage

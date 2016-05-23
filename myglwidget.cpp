@@ -1,9 +1,13 @@
 #include "MyGLWidget.h"
 
+
+//---------------------------------------------------------------------------------------------------------
 MyGLWidget::MyGLWidget()
 {
 
 }
+
+//---------------------------------------------------------------------------------------------------------
 
 MyGLWidget::MyGLWidget(QWidget *parent)
     : QGLWidget(parent)
@@ -15,6 +19,7 @@ MyGLWidget::MyGLWidget(QWidget *parent)
 
 }
 
+//---------------------------------------------------------------------------------------------------------
 
 void MyGLWidget::initializeGL()
 {
@@ -30,10 +35,11 @@ void MyGLWidget::initializeGL()
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // Are there Interpretations? Set hint!
 */
 
-
     // P1.3 - Black Background
   //  glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Clear values used by glClear (Color-Buffer)
 }
+
+//---------------------------------------------------------------------------------------------------------
 
 void MyGLWidget::resizeGL(int width, int height)
 {
@@ -49,12 +55,9 @@ void MyGLWidget::resizeGL(int width, int height)
 
        //glFrustum(-0.05, 0.05, -0.05, 0.05, 0, 10.0);
 
-
-
 }
 
-
-
+//---------------------------------------------------------------------------------------------------------
 
 QImage MyGLWidget::loadTexture2(char *filename, GLuint &textureID){
     glEnable(GL_TEXTURE_2D); // Enable texturing
@@ -78,6 +81,8 @@ QImage MyGLWidget::loadTexture2(char *filename, GLuint &textureID){
     return tex;
 }
 
+//---------------------------------------------------------------------------------------------------------
+
 void MyGLWidget::paintGL()
 {
 
@@ -91,9 +96,8 @@ void MyGLWidget::paintGL()
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
-  //  tex = QImage(640, 480, QImage::Format_RGB888);
     tex = QGLWidget::convertToGLFormat(tex);
-    //qDebug() << tex.width() << " x " <<  tex.height() ;
+
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, tex.bits());
 
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
@@ -104,28 +108,27 @@ void MyGLWidget::paintGL()
    // loadTexture2("c:\image.jpg", backgroundimage);
   //------------------------------------------
 
-   glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Das OpenCV-Bild als Texture-Quad zeichnen
+    glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-   glEnable(GL_TEXTURE_2D);
-   glBindTexture(GL_TEXTURE_2D, backgroundimage);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, backgroundimage);
 
-   glBegin(GL_QUADS);
-       glTexCoord2f(0,0); glVertex3f(-1, -1, -1.0);
-       glTexCoord2f(1,0); glVertex3f(1, -1,  -1.0);
-       glTexCoord2f(1,1); glVertex3f(1, 1,   -1.0);
-       glTexCoord2f(0,1); glVertex3f(-1, 1,  -1.0);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0,0); glVertex3f(-1, -1, -1.0);
+        glTexCoord2f(1,0); glVertex3f(1, -1,  -1.0);
+        glTexCoord2f(1,1); glVertex3f(1, 1,   -1.0);
+        glTexCoord2f(0,1); glVertex3f(-1, 1,  -1.0);
 
-   glEnd();
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
 
-   glDisable(GL_TEXTURE_2D);
 
-
-/*
-   glMatrixMode(GL_MODELVIEW);
-   glTranslatef(-1.0f, -1.0f, 0.0f); // Initial
-   //glLoadIdentity();
-   GLfloat markerX, markerY ;
+    // Zeichne Blaue Quader auf die Marker
+    glMatrixMode(GL_MODELVIEW);
+    glTranslatef(-1.0f, -1.0f, 0.0f); // Initial
+    GLfloat markerX, markerY ;
 
     for(unsigned int i = 0; i < v3fCircles.size(); i++) {
         markerX = 2.0 / 640 * v3fCircles[i][0] ;
@@ -140,7 +143,9 @@ void MyGLWidget::paintGL()
         glEnd() ;
 
     }
-*/
+
+
+/*
     // X - Axis red
         glBegin(GL_LINES);
         glColor3f(1.0f, 0.0f, 0.0f);
@@ -159,14 +164,12 @@ void MyGLWidget::paintGL()
         glVertex3f(0.0f, 0.0f, 1.0f);
         glVertex3f(0.0f, 0.0f, -1.0f);
         glEnd();
-
-/*
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glTranslatef(-0.0f, -0.0f, -7.0f); // Initial
 */
+
+
 }
 
+//---------------------------------------------------------------------------------------------------------
 
 // Mat zu QImage
 void MyGLWidget::showImage(cv::Mat image)
@@ -192,6 +195,7 @@ void MyGLWidget::showImage(cv::Mat image)
     updateGL();
 }
 
+//---------------------------------------------------------------------------------------------------------
 
 void MyGLWidget::sendMakerPos(std::vector<cv::Vec3f> _v3fCircles) {
     v3fCircles = _v3fCircles ; // Vielleicht als Referenz machen?
