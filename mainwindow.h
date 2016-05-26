@@ -13,6 +13,7 @@
 #include<opencv2/calib3d.hpp>
 #include <opencv2/core/cvstd.hpp>
 
+
 namespace Ui {
 class MainWindow;
 }
@@ -45,7 +46,8 @@ private:
     cv::Ptr<cv::aruco::DetectorParameters> detectorParams ;
     int calibrationFlags = 0;
     cv::Mat cameraMatrix, distCoeffs;
-    std::vector< cv::Mat > rvecs, tvecs;
+    std::vector< cv::Mat > rvecsCalib, tvecsCalib;
+    std::vector< cv::Vec3d > rvecs, tvecs;
     double repError;
     std::vector< std::vector< cv::Point2f > > allCornersConcatenated;
     std::vector< int > allIdsConcatenated;
@@ -65,6 +67,9 @@ private:
 
 
     bool initializeDetection();
+
+    cv::Mat modelViewFirstId ;
+    void calcModelViewMatrixFirstId();
 
     void MainWindow::exitProgram();                    // function prototype
 

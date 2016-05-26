@@ -21,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent) :
        return;                                         //
     }
 
+
+
 }
 
 
@@ -73,7 +75,7 @@ void MainWindow::checkCalbrationImages() {
     // calibrate camera
    repError = cv::aruco::calibrateCameraAruco(allCornersConcatenated, allIdsConcatenated,
                                               markerCounterPerFrame, board, imgSize, cameraMatrix,
-                                              distCoeffs, rvecs, tvecs, calibrationFlags);
+                                              distCoeffs, rvecsCalib, tvecsCalib, calibrationFlags);
 
    bool saveOk = saveCameraParams("CameraParams.txt", imgSize, 0, calibrationFlags, cameraMatrix,
                                       distCoeffs, repError);
@@ -203,9 +205,13 @@ const bool MainWindow::saveCameraParams(const std::string &filename, cv::Size im
 
     fs << "camera_matrix" << cameraMatrix;
     fs << "distortion_coefficients" << distCoeffs;
-
     fs << "avg_reprojection_error" << totalAvgErr;
 
+    /*
+    cv::Mat testMat ;
+    cameraMatrix.convertTo(testMat,CV_32F);
+    cv::write(fs,"testMat12",testMat.at<float>(1,2));
+    */
     return true;
 }
 
@@ -230,16 +236,23 @@ void MainWindow::processFrameAndUpdateGUI() {
         return;                                                                     //
     }
 
+
     std::vector< int > ids;
     std::vector< std::vector< cv::Point2f > > corners, rejected;
-    std::vector< cv::Vec3d > rvecs, tvecs;
+    //std::vector< cv::Vec3d > rvecs, tvecs;
 
 
     cv::aruco::detectMarkers(imageOriginal, dictionary, corners, ids, detectorParams, rejected) ;
 
     if ( ids.size() > 0 ) {
         cv::aruco::estimatePoseSingleMarkers(corners, 0.055, cameraMatrix, distCoeffs, rvecs, tvecs) ;
+        calcModelViewMatrixFirstId();
+        ui->widget->drawAR = true ;
+
     }
+
+
+
 
     imageOriginal.copyTo(imageCopy);
 
@@ -257,12 +270,15 @@ void MainWindow::processFrameAndUpdateGUI() {
     QImage qimgOriginal = convertOpenCVMatToQtQImage(imageOriginal);                         // convert from OpenCV Mat to Qt QImage
     QImage qimgCopy = convertOpenCVMatToQtQImage(imageCopy);                       //
 
-    //ui->widget->sendMakerPos(v3fCircles);
+
     ui->widget->showImage(imageCopy);
 
     ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgOriginal));           // show images on form labels
     ui->lblThresh->setPixmap(QPixmap::fromImage(qimgCopy));         //
 
+
+   rvecs.clear();
+   tvecs.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,7 +291,100 @@ bool MainWindow::initializeDetection() {
 
     bool status = false ;
     if (estimatePos) status = readCameraParameters("CameraParams.txt") ;
+    ui->widget->cameraMatrix = cameraMatrix ;  // OpenGL die Camera Matrix geben
+
+    ui->widget->readyToCalcProjection = true ;
+    ui->widget->loadProjectionMatrix();
     return status ;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+void MainWindow::calcModelViewMatrixFirstId() {
+/*
+
+    cv::Mat Rvec (rvecs[0],CV_32F) ;
+    cv::Mat Tvec (tvecs[0],CV_32F) ;
+
+
+    cv::Mat Rot(3,3,CV_32FC1);
+    cv::Rodrigues(Rvec,Rot);
+
+
+     //Rot = rmtx
+    cv::Mat view_matrix = cv::Mat::zeros(4, 4, CV_64F);
+
+    view_matrix.at<double>(0,0) = Rot.at<double>(0, 0) ;
+    view_matrix.at<double>(0,1) = Rot.at<double>(0, 1) ;
+    view_matrix.at<double>(0,2) = Rot.at<double>(0, 2) ;
+    view_matrix.at<double>(0,3) = tvecs[0][0] ;
+    view_matrix.at<double>(1,0) = Rot.at<double>(1, 0) ;
+    view_matrix.at<double>(1,1) = Rot.at<double>(1, 1) ;
+    view_matrix.at<double>(1,2) = Rot.at<double>(1, 2) ;
+    view_matrix.at<double>(1,3) = tvecs[0][1] ;
+    view_matrix.at<double>(2,0) = Rot.at<double>(2, 0) ;
+    view_matrix.at<double>(2,1) = Rot.at<double>(2, 1) ;
+    view_matrix.at<double>(2,2) = Rot.at<double>(2, 2) ;
+    view_matrix.at<double>(2,3) = tvecs[0][2];
+    view_matrix.at<double>(3,0) = 0.0 ;
+    view_matrix.at<double>(3,1) = 0.0 ;
+    view_matrix.at<double>(3,2) = 0.0 ;
+    view_matrix.at<double>(3,3) = 1.0 ;
+
+
+
+    cv::Mat inverse_matrix(4,4,CV_64F);
+    inverse_matrix.at<double>(0,0) = 1.0 ;
+    inverse_matrix.at<double>(0,1) = 1.0 ;
+    inverse_matrix.at<double>(0,2) = 1.0 ;
+    inverse_matrix.at<double>(0,3) = 1.0 ;
+    inverse_matrix.at<double>(1,0) = -1.0 ;
+    inverse_matrix.at<double>(1,1) = -1.0 ;
+    inverse_matrix.at<double>(1,2) = -1.0 ;
+    inverse_matrix.at<double>(1,3) = -1.0 ;
+    inverse_matrix.at<double>(2,0) = -1.0 ;
+    inverse_matrix.at<double>(2,1) = -1.0 ;
+    inverse_matrix.at<double>(2,2) = -1.0 ;
+    inverse_matrix.at<double>(2,3) = -1.0 ;
+    inverse_matrix.at<double>(3,0) = 1.0 ;
+    inverse_matrix.at<double>(3,1) = 1.0 ;
+    inverse_matrix.at<double>(3,2) = 1.0 ;
+    inverse_matrix.at<double>(3,3) = 1.0 ;
+
+    view_matrix = view_matrix * inverse_matrix ;
+
+    cv::Mat view_matrix_t(4,4,CV_64F);
+    cv::transpose(view_matrix,view_matrix_t) ;
+
+    view_matrix_t.copyTo( ui->widget->modelView_matrix  );
+*/
+
+
+
+
+    cv::Mat Rvec (rvecs[0],CV_32F) ;
+    cv::Mat Tvec (tvecs[0],CV_32F) ;
+
+
+    cv::Mat Rot(3,3,CV_32FC1);
+    cv::Rodrigues(Rvec,Rot);
+
+    // [R | t] matrix
+    cv::Mat_<double> para = cv::Mat_<double>::eye(4,4);
+    Rot.convertTo(para(cv::Rect(0,0,3,3)),CV_64F);
+    Tvec.copyTo(para(cv::Rect(3,0,1,3)));
+
+    cv::Mat cvToGl = cv::Mat::zeros(4, 4, CV_64F);
+    cvToGl.at<double>(0, 0) = 1.0f;
+    cvToGl.at<double>(1, 1) = -1.0f; // Invert the y axis
+    cvToGl.at<double>(2, 2) = -1.0f; // invert the z axis
+    cvToGl.at<double>(3, 3) = 1.0f;
+
+    para = cvToGl * para;
+
+    cv::Mat(para.t()).copyTo( ui->widget->modelView_matrix ); // transpose to col-major for OpenGL
+
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

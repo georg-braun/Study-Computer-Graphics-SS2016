@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     w.show();
 
     bool runDetection = true ;
-    bool runCalibration = false ;
+    bool runCalibration =  false ;
 
     if ( runCalibration ) {
         w.calibrateCamera();

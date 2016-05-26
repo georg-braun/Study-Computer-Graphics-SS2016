@@ -24,7 +24,7 @@ protected:
     void initializeGL();
     void resizeGL(int width, int height);
     void paintGL();
-
+    void perspectiveGL( GLdouble fovY, GLdouble aspect, GLdouble zNear, GLdouble zFar );
 
     QImage      mRenderQtImg;           /// Qt image to be rendered
     cv::Mat     mOrigImage;             /// original OpenCV image to be shown
@@ -33,8 +33,8 @@ protected:
     int         mOutH;                  /// Resized Image height
     int         mOutW;                  /// Resized Image width
     float       mImgRatio;             /// height/width ratio
-
-
+    cv::Mat_<double> persp ;
+    void drawAxis();
 
 public:
     MyGLWidget();
@@ -45,6 +45,11 @@ public:
     QImage tex;
     std::vector<cv::Vec3f> v3fCircles ;
     void sendMakerPos(std::vector<cv::Vec3f> _v3fCircles) ;
+    cv::Mat cameraMatrix;
+    void loadProjectionMatrix() ;
+    cv::Mat modelView_matrix ;
+    bool drawAR = false ;
+    bool        readyToCalcProjection = false ;
 };
 
 #endif // MYGLWIDGET_H
