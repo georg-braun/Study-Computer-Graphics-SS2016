@@ -8,7 +8,8 @@
 #include <QOpenGLTexture>
 #include <QtDebug>
 #include <vector>
-#include <mutex>
+
+#include "ardata.h"
 
 #include<opencv2/core/core.hpp>
 #include<opencv2/highgui/highgui.hpp>
@@ -37,6 +38,8 @@ protected:
     cv::Mat_<double> persp ;
     void drawAxis();
 
+    void fetchArData() ;
+
 public:
     MyGLWidget();
     MyGLWidget(QWidget *parent); // Konstruktur noch angeben?
@@ -47,7 +50,8 @@ public:
     std::vector<cv::Vec3f> v3fCircles ;
     void sendMakerPos(std::vector<cv::Vec3f> _v3fCircles) ;
 
-
+     ArData * arDataPtr ;
+     void attachArData();
 
     bool drawAR = false ;
     bool        readyToCalcProjection = false ;
@@ -60,7 +64,13 @@ public:
     bool projectionCalculated = false ;  // Attached to Detector
     void loadProjectionMatrix() ;        // Invoked Outside (wait for Detector to calc. Camera Matrix)
 
-    std::mutex * mutexPtr ;
+    /*
+    bool * drawArPtr ;  // Marker erkannt?
+    bool * detectorInitializedPtr; // OpenCV Detector liefert Bilder?
+    QImage * texPtr ;
+    cv::Mat * modelView_matrixPtr ;
+    cv::Mat * cameraMatrixPtr ;
+    */
 
 };
 

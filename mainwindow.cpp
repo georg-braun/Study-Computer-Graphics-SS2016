@@ -10,24 +10,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
 
-    //myCvDetector.xptr = &(ui->widget->xtest) ;
-    //ui->widget->xtest = &(myCvDetector.xptr);
-    myCvDetector.drawArPtr = &(ui->widget->drawAR);
-    myCvDetector.detectorInitializedPtr = &(ui->widget->detectorInitialized);
-    myCvDetector.texPtr = &(ui->widget->tex) ;
-    myCvDetector.modelView_matrixPtr = &(ui->widget->modelView_matrix);
-    myCvDetector.cameraMatrixPtr = &(ui->widget->cameraMatrix);
-
-    myCvDetector.mutexPtr = &imageMutex ;
-    ui->widget->mutexPtr = &imageMutex ;
-
-   // w.attachOriginalImageToLabel( myCvDetector . lblWebcamOriginal );
-   // w.attachDetectedImageToLabel( myCvDetector . lblWebcamDetected );
-
-    //w.attachDetectorToGlImage(myCvDetector.tex);
-    myCvDetector.startDetection();
-    ui->widget->loadProjectionMatrix(); // Camera Parameters should be set, calc your Projection ;)
-
 }
 
 
@@ -36,6 +18,35 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+void MainWindow::startProgram() {
+
+    // Detector und OpenGL an gemeinsame Datenbasis anklemmen
+    myCvDetector.arDataPtr = &arData ;
+    ui->widget->arDataPtr = &arData ;
+
+    //myCvDetector.attachArData();
+    //ui->widget->attachArData();
+
+
+    /*
+    myCvDetector.drawArPtr = &(ui->widget->drawAR);
+    myCvDetector.detectorInitializedPtr = &(ui->widget->detectorInitialized);
+    myCvDetector.texPtr = &(ui->widget->tex) ;
+    myCvDetector.modelView_matrixPtr = &(ui->widget->modelView_matrix);
+    myCvDetector.cameraMatrixPtr = &(ui->widget->cameraMatrix);
+    */
+
+   // w.attachOriginalImageToLabel( myCvDetector . lblWebcamOriginal );
+   // w.attachDetectedImageToLabel( myCvDetector . lblWebcamDetected );
+
+    myCvDetector.startDetection();
+    myCvDetector.start();
+
+    ui->widget->loadProjectionMatrix(); // Camera Parameters should be set, calc the Projection ;)
+
+
+}
 
 void MainWindow::attachOriginalImageToLabel( QLabel* lblDetectorRef ) {
 

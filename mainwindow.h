@@ -5,8 +5,10 @@
 #include<QtCore>
 #include<QLabel>
 
+
 #include <mutex>
 
+#include "ardata.h"
 #include "detector.h"
 namespace Ui {
 class MainWindow;
@@ -27,6 +29,9 @@ public:
     ~MainWindow();
 
     std::mutex imageMutex ;
+    ArData arData ;
+
+    void startProgram() ;
 
     void attachOriginalImageToLabel( QLabel* lblDetectorRef ) ;
     void attachDetectedImageToLabel( QLabel* lblDetectorRef ) ;

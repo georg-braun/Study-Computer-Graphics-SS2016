@@ -21,6 +21,30 @@ MyGLWidget::MyGLWidget(QWidget *parent)
 
 //---------------------------------------------------------------------------------------------------------
 
+void MyGLWidget::attachArData() {
+
+    /*
+    drawArPtr = &(arDataPtr->drawAR) ;
+    detectorInitializedPtr = &(arDataPtr->detectorInitialized);
+    texPtr = &(arDataPtr->tex);
+    modelView_matrixPtr = &(arDataPtr->modelView_matrix);
+    cameraMatrixPtr = &(arDataPtr->cameraMatrix);
+    */
+}
+
+void MyGLWidget::fetchArData() {
+
+    arDataPtr->mutex.lock();
+    cameraMatrix = arDataPtr->cameraMatrix ;
+    modelView_matrix = arDataPtr->modelView_matrix ;
+    drawAR = arDataPtr->drawAR ;
+    tex = arDataPtr->tex ;
+    detectorInitialized =  arDataPtr->detectorInitialized ;
+    arDataPtr->mutex.unlock();
+}
+
+//---------------------------------------------------------------------------------------------------------
+
 void MyGLWidget::initializeGL()
 {
     // Enable GL textures
@@ -87,6 +111,8 @@ void MyGLWidget::resizeGL(int width, int height)
 void MyGLWidget::paintGL()
 {
 
+    fetchArData();
+
     if ( detectorInitialized ) {
 
         //qDebug() << *xtest;
@@ -108,10 +134,10 @@ void MyGLWidget::paintGL()
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
-        mutexPtr->lock();
+
         tex = QGLWidget::convertToGLFormat(tex);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, tex.bits());
-        mutexPtr->unlock();
+
 
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
@@ -327,6 +353,8 @@ void MyGLWidget::showImage(cv::Mat image)
 }
 
 void MyGLWidget::loadProjectionMatrix() {
+
+    fetchArData();  // Get the Data: Camera Matrix
     //static cv::Mat_<double> persp ;
     double nearVal = 0.1;
     double farVal = 100.0 ;

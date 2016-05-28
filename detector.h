@@ -17,17 +17,19 @@
 #include<opencv2/aruco.hpp>
 #include<opencv2/calib3d.hpp>
 #include <opencv2/core/cvstd.hpp>
+#include "ardata.h"
 
-#include <mutex>
 
-class Detector : public QMainWindow
+
+//class Detector : public QMainWindow
+class Detector : public QThread
 {
     Q_OBJECT
 
 private:
 
     cv::VideoCapture capWebcam;             // Capture object to use with webcam
-    QTimer* qtimer;                 // timer for processFrameAndUpdateGUI()
+   // QTimer* qtimer;                 // timer for processFrameAndUpdateGUI()
     QImage convertOpenCVMatToQtQImage(cv::Mat mat);       // function prototype
     cv::Ptr<cv::aruco::Dictionary> dictionary ;
 
@@ -56,13 +58,15 @@ private:
 
     QImage      mRenderQtImg;           /// Qt image to be rendered
     cv::Mat     mOrigImage;             /// original OpenCV image to be shown
-    void showImage(cv::Mat image);
+    void convertImage(cv::Mat image);
 public slots:
     void processFrameAndUpdateGUI();                // function prototype
 
 public:    
     Detector();
 
+    bool runDetection = true ;
+    void run() ;    // Thread Method
 
     QLabel* lblWebcamOriginal ;
     QLabel* lblWebcamDetected ;
@@ -70,14 +74,16 @@ public:
     void startDetection();
     void stopDetection();
 
-    int xptr = 0 ;
-    bool * drawArPtr ;  // Marker erkannt?
-    bool * detectorInitializedPtr; // OpenCV Detector liefert Bilder?
-    QImage * texPtr ;
-    cv::Mat * modelView_matrixPtr ;
-    cv::Mat * cameraMatrixPtr ;
+    ArData * arDataPtr ;
+    void attachArData();
 
-    std::mutex * mutexPtr ;
+   // bool * drawArPtr ;  // Marker erkannt?
+   // bool * detectorInitializedPtr; // OpenCV Detector liefert Bilder?
+   // QImage * texPtr ;
+   // cv::Mat * modelView_matrixPtr ;
+   // cv::Mat * cameraMatrixPtr ;
+
+    cv::Mat_<double> para ;
 
 };
 

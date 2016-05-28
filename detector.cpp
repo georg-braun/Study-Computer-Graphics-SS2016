@@ -12,14 +12,36 @@ Detector::Detector()
        return;                                         //
     }
 
+
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void Detector::exitProgram() {
-    if(qtimer->isActive()) qtimer->stop();          // if timer is running, stop timer
+    //if(qtimer->isActive()) qtimer->stop();          // if timer is running, stop timer
     //QApplication::quit();                           // and exit program
 }
+
+void Detector::attachArData() {
+
+    /*
+    drawArPtr = &(arDataPtr->drawAR) ;
+    detectorInitializedPtr = &(arDataPtr->detectorInitialized);
+    texPtr = &(arDataPtr->tex);
+    modelView_matrixPtr = &(arDataPtr->modelView_matrix);
+    cameraMatrixPtr = &(arDataPtr->cameraMatrix);
+    */
+}
+
+void Detector::run()  {
+
+    while ( runDetection ) {
+        msleep(40);
+        qDebug() << "Hello Detector Thread :)" ;
+        processFrameAndUpdateGUI();
+    }
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,10 +57,12 @@ bool Detector::readCameraParameters(std::string filename) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void Detector::processFrameAndUpdateGUI() {
 
+    bool drawAR = false ; // Erst mal davon ausgehen, dass kein Marker gefunden wurde
+
     bool blnFrameReadSuccessfully = capWebcam.read(imageOriginal);                    // get next frame from the webcam
 
     if (!blnFrameReadSuccessfully || imageOriginal.empty()) {                            // if we did not get a frame
-        QMessageBox::information(this, "", "unable to read from webcam \n\n exiting program\n");        // show error via message box
+        //QMessageBox::information(this, "", "unable to read from webcam \n\n exiting program\n");        // show error via message box
         exitProgram();                                                              // and exit program
         return;                                                                     //
     }
@@ -54,7 +78,9 @@ void Detector::processFrameAndUpdateGUI() {
     if ( ids.size() > 0 ) {
         cv::aruco::estimatePoseSingleMarkers(corners, 0.055, cameraMatrix, distCoeffs, rvecs, tvecs) ;
         calcModelViewMatrixFirstId();
-        *drawArPtr = true ;
+        drawAR = true ;
+
+        //*drawArPtr = true ;
 
     }
 
@@ -78,8 +104,17 @@ void Detector::processFrameAndUpdateGUI() {
  //   QImage qimgCopy = convertOpenCVMatToQtQImage(imageCopy);                       //
 
 
-    //ui->widget->showImage(imageCopy);
-    showImage(imageCopy);
+
+    convertImage(imageCopy);
+
+    // Daten an das AR-Datenmodul weiterreichen
+    arDataPtr->mutex.lock();
+    cv::Mat(para.t()).copyTo( arDataPtr->modelView_matrix ); // transpose to col-major for OpenGL
+    arDataPtr->tex = mRenderQtImg;
+    arDataPtr->drawAR = drawAR ;  // Marker wurde gefunden, also was AR Zeug machen ;)
+    // OpenGL Widget sagen, dass es nun ein Bild gibt und es anfangen kann dieses zu "zeichnen"
+    arDataPtr->detectorInitialized = true ;
+    arDataPtr->mutex.unlock();
 
     //ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgOriginal));           // show images on form labels
     //ui->lblThresh->setPixmap(QPixmap::fromImage(qimgCopy));         //
@@ -103,7 +138,8 @@ bool Detector::initializeDetection() {
 
     bool status = false ;
     if (estimatePos) status = readCameraParameters("CameraParams.txt") ;
-      *cameraMatrixPtr = cameraMatrix ;  // OpenGL die Camera Matrix geben
+        arDataPtr->cameraMatrix = cameraMatrix ;
+    //*cameraMatrixPtr = cameraMatrix ;  // OpenGL die Camera Matrix geben
     //ui->widget->cameraMatrix = cameraMatrix ;  // OpenGL die Camera Matrix geben
 
 
@@ -125,7 +161,7 @@ void Detector::calcModelViewMatrixFirstId() {
     cv::Rodrigues(Rvec,Rot);
 
     // [R | t] matrix
-    cv::Mat_<double> para = cv::Mat_<double>::eye(4,4);
+    para = cv::Mat_<double>::eye(4,4);
     Rot.convertTo(para(cv::Rect(0,0,3,3)),CV_64F);
     Tvec.copyTo(para(cv::Rect(3,0,1,3)));
 
@@ -137,8 +173,8 @@ void Detector::calcModelViewMatrixFirstId() {
 
     para = cvToGl * para;
 
-    cv::Mat(para.t()).copyTo( *modelView_matrixPtr ); // transpose to col-major for OpenGL
-    //cv::Mat(para.t()).copyTo( ui->widget->modelView_matrix ); // transpose to col-major for OpenGL
+    //cv::Mat(para.t()).copyTo( *modelView_matrixPtr ); // transpose to col-major for OpenGL
+
 
 
 }
@@ -146,17 +182,19 @@ void Detector::calcModelViewMatrixFirstId() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void Detector::startDetection() {
 
-     xptr = 3 ;
+
 
     bool start = false ;
     start = initializeDetection() ;
 
+    /*
     qtimer = new QTimer(this);                          // instantiate timer
     connect(qtimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdateGUI()));     // associate timer to processFrameAndUpdateGUI
 
     if ( start ) {
         qtimer->start(40);
     }
+    */
 
 }
 
@@ -164,7 +202,7 @@ void Detector::startDetection() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void Detector::stopDetection() {
 
-    qtimer->stop();
+    //qtimer->stop();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,7 +219,7 @@ QImage Detector::convertOpenCVMatToQtQImage(cv::Mat mat) {
     return QImage();        // return a blank QImage if the above did not work
 }
 
-void Detector::showImage(cv::Mat image)
+void Detector::convertImage(cv::Mat image)
 {
 
     image.copyTo(mOrigImage);
@@ -200,12 +238,11 @@ void Detector::showImage(cv::Mat image)
    // mRenderQtImg = mRenderQtImg.mirrored();
 
 
-     mutexPtr->lock();
-     *texPtr = mRenderQtImg;
-     mutexPtr->unlock();
+
+     //*texPtr = mRenderQtImg;
 
     // OpenGL Widget sagen, dass es nun ein Bild gibt und es anfangen kann dieses zu "zeichnen"
-    *detectorInitializedPtr = true ;
+    //*detectorInitializedPtr = true ;
 
     // Berechne Model View für den ersten Marker
 

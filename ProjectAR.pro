@@ -17,13 +17,15 @@ SOURCES += main.cpp\
     MyGLWidget.cpp \
     markergenerator.cpp \
     calibrator.cpp \
-    detector.cpp
+    detector.cpp \
+    ardata.cpp
 
 HEADERS  += mainwindow.h \
     MyGLWidget.h \
     markergenerator.h \
     calibrator.h \
-    detector.h
+    detector.h \
+    ardata.h
 
 FORMS    += mainwindow.ui
 
