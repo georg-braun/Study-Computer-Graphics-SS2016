@@ -11,6 +11,8 @@ MyGLWidget::MyGLWidget()
 
 MyGLWidget::MyGLWidget(QWidget *parent)
     : QGLWidget(parent)
+    , vbo(QOpenGLBuffer::VertexBuffer)
+    , ibo(QOpenGLBuffer::IndexBuffer)
 {
 
     connect(&timer, SIGNAL(timeout()),this,SLOT(updateGL()));
@@ -58,6 +60,8 @@ void MyGLWidget::initializeGL()
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     glDisable(GL_TEXTURE_2D);
 
+    fillBuffer();
+    initalizeBuffer();
 }
 
 
@@ -129,52 +133,18 @@ void MyGLWidget::paintGL()
 
             glTranslatef(0.005,0.008,0);    // Kleine Korrektur
 
-
-            // Würfel - Rechte Hand Regel: Daumen zeigt nach außen.
-            glBegin(GL_QUADS) ;
-
-                // Back
-                glColor3f(1,0,0);
-                glVertex3f( -0.01f, -0.01f, -0.01f);
-                glVertex3f( -0.01f,  0.01f, -0.01f);
-                glVertex3f(  0.01f,  0.01f, -0.01f);
-                glVertex3f(  0.01f, -0.01f, -0.01f);
-                // Front
-                glColor3f(0,0,1);
-                glVertex3f(  0.01f, -0.01f, 0.01f);
-                glVertex3f(  0.01f,  0.01f, 0.01f);
-                glVertex3f( -0.01f,  0.01f, 0.01f);
-                glVertex3f( -0.01f, -0.01f, 0.01f);
-
-                // Right
-                glColor3f(0,1,0);
-                glVertex3f(  0.01f,  0.01f,  0.01f);
-                glVertex3f(  0.01f, -0.01f,  0.01f);
-                glVertex3f(  0.01f, -0.01f, -0.01f);
-                glVertex3f(  0.01f,  0.01f, -0.01f);
-                // Left
-                glColor3f(0,1,1);
-                glVertex3f( -0.01f, -0.01f,  0.01f);
-                glVertex3f( -0.01f,  0.01f,  0.01f);
-                glVertex3f( -0.01f,  0.01f, -0.01f);
-                glVertex3f( -0.01f, -0.01f, -0.01f);
-
-                // Top
-                glColor3f(1,1,0);
-                glVertex3f(  0.01f,  0.01f, -0.01f);
-                glVertex3f( -0.01f,  0.01f, -0.01f);
-                glVertex3f( -0.01f,  0.01f,  0.01f);
-                glVertex3f(  0.01f,  0.01f,  0.01f);
-
-                // Bottom
-                glColor3f(1,1,0);
-                glVertex3f( -0.01f,  -0.01f,  0.01f);
-                glVertex3f( -0.01f,  -0.01f, -0.01f);
-                glVertex3f(  0.01f,  -0.01f, -0.01f);
-                glVertex3f(  0.01f,  -0.01f,  0.01f);
-
-
-            glEnd() ;
+            // Würfel zeichnen
+            vbo.bind();
+            ibo.bind();
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
+            glVertexPointer(3,GL_FLOAT,sizeof(GLfloat)*8,(char*)NULL+0);
+            glColorPointer(3,GL_FLOAT,sizeof(GLfloat)*8,(char*)NULL+sizeof(GLfloat)*4) ;
+            glDrawElements(GL_QUADS,24,GL_UNSIGNED_BYTE,0);
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_COLOR_ARRAY);
+            vbo.release();
+            ibo.release();
 
             // drawAxis();
 
@@ -256,5 +226,96 @@ void MyGLWidget::loadProjectionMatrix() {
                 projectionCalculated = true ;
 
             }
+
+}
+
+//---------------------------------------------------------------------------------------------------------
+
+void MyGLWidget::addVertice(int     verticeNo ,
+                            GLfloat x ,
+                            GLfloat y ,
+                            GLfloat z ,
+                            GLfloat r ,
+                            GLfloat g ,
+                            GLfloat b )
+{
+    int arrayPos = verticeNo*(2*tupelSize) ;
+    vertices[arrayPos  ] = x ;
+    vertices[arrayPos+1] = y ;
+    vertices[arrayPos+2] = z ;
+    vertices[arrayPos+3] = 1 ;
+    vertices[arrayPos+4] = r ;
+    vertices[arrayPos+5] = g ;
+    vertices[arrayPos+6] = b ;
+    vertices[arrayPos+7] = 1 ;
+}
+
+//---------------------------------------------------------------------------------------------------------
+
+void MyGLWidget::initalizeBuffer()
+{
+    // Erzeuge vbo
+    vbo.create();
+    vbo.bind();
+    vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vbo.allocate(vertices,sizeof(GLfloat) * (2*tupelSize) * verticesCount );
+    vbo.release();
+    // Erzeuge Index-Buffer
+    ibo.create();
+    ibo.bind();
+    ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    ibo.allocate(indicies,sizeof(GLubyte) * 4 * 6);
+    //ibo.allocate(indicies,sizeof(GLubyte) * 4 );
+    ibo.release();
+}
+
+//---------------------------------------------------------------------------------------------------------
+
+void MyGLWidget::fillBuffer()
+{
+    // Vertices
+    // Back
+    addVertice(0 , -0.01f , -0.01f , -0.01f , 1 , 0 , 0 );
+    addVertice(1 ,  0.01f , -0.01f , -0.01f , 0 , 1 , 0 );
+    addVertice(2 ,  0.01f ,  0.01f , -0.01f , 1 , 0 , 1 );
+    addVertice(3 , -0.01f ,  0.01f , -0.01f , 0 , 0 , 1 );
+    // Front
+    addVertice(4 , -0.01f , -0.01f ,  0.01f , 1 , 0 , 1 );
+    addVertice(5 ,  0.01f , -0.01f ,  0.01f , 1 , 1 , 0 );
+    addVertice(6 ,  0.01f ,  0.01f ,  0.01f , 0 , 1 , 1 );
+    addVertice(7 , -0.01f ,  0.01f ,  0.01f , 1 , 0 , 0 );
+
+    // Indicies - Cube
+    // Front
+    indicies[0] = 4 ;
+    indicies[1] = 5 ;
+    indicies[2] = 6 ;
+    indicies[3] = 7 ;
+
+    // Back
+    indicies[4] = 3 ;
+    indicies[5] = 2 ;
+    indicies[6] = 1 ;
+    indicies[7] = 0 ;
+    // Left
+    indicies[8] = 7 ;
+    indicies[9] = 3 ;
+    indicies[10] = 0 ;
+    indicies[11] = 4 ;
+    // Right
+    indicies[12] = 6 ;
+    indicies[13] = 5 ;
+    indicies[14] = 1 ;
+    indicies[15] = 2 ;
+    // Top
+    indicies[16] = 6 ;
+    indicies[17] = 2 ;
+    indicies[18] = 3 ;
+    indicies[19] = 7 ;
+    // Bottom
+    indicies[20] = 4 ;
+    indicies[21] = 0 ;
+    indicies[22] = 1 ;
+    indicies[23] = 5 ;
 
 }
