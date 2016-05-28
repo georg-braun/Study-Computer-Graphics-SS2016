@@ -14,10 +14,16 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    MyGLWidget.cpp
+    MyGLWidget.cpp \
+    markergenerator.cpp \
+    calibrator.cpp \
+    detector.cpp
 
 HEADERS  += mainwindow.h \
-    MyGLWidget.h
+    MyGLWidget.h \
+    markergenerator.h \
+    calibrator.h \
+    detector.h
 
 FORMS    += mainwindow.ui
 

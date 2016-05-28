@@ -14,7 +14,7 @@ MyGLWidget::MyGLWidget(QWidget *parent)
 {
 
     connect(timer, SIGNAL(timeout()),this,SLOT(updateGL()));
-    //timer->start(40);
+    timer->start(40);
 
 
 }
@@ -87,180 +87,188 @@ void MyGLWidget::resizeGL(int width, int height)
 void MyGLWidget::paintGL()
 {
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if ( detectorInitialized ) {
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity() ;
-    glOrtho(-4, 4, -3, 3, 0.1, 100);
+        //qDebug() << *xtest;
 
-
-
-
-  // -- Verarbeitung des OpenCV-Bildes
-    glEnable(GL_TEXTURE_2D); // Enable texturing
-    glGenTextures(1, &backgroundimage); // Obtain an id for the texture
-    glBindTexture(GL_TEXTURE_2D, backgroundimage); // Set as the current texture
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-
-    tex = QGLWidget::convertToGLFormat(tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, tex.bits());
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-
-    glDisable(GL_TEXTURE_2D);
-
-  //------------------------------------------
-/*
-
-*/
-  // -- OpenCV-Bild (Background) zeichnen
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, backgroundimage);
-
-    glPushMatrix();
-    glTranslatef(0.0,0.0,-99) ;
-
-    glBegin(GL_QUADS);
-        glTexCoord2f(0,0); glVertex3f(-4, -3, -0.0);
-        glTexCoord2f(1,0); glVertex3f( 4, -3, -0.0);
-        glTexCoord2f(1,1); glVertex3f( 4,  3, -0.0);
-        glTexCoord2f(0,1); glVertex3f(-4,  3, -0.0);
-    glEnd();
-
-    glPopMatrix();
-
-    glDisable(GL_TEXTURE_2D);
-
-
-
-
-
-
-
-    // Vllt Fehler wenn nil zugriff!!
-    if ( drawAR ) {
-
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity() ;
-        glLoadMatrixd((double*)persp.data);
+        glOrtho(-4, 4, -3, 3, 0.1, 100);
 
+
+
+
+      // -- Verarbeitung des OpenCV-Bildes
+        glEnable(GL_TEXTURE_2D); // Enable texturing
+//        glGenTextures(1, &backgroundimage); // Obtain an id for the texture
+        glBindTexture(GL_TEXTURE_2D, backgroundimage); // Set as the current texture
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+        mutexPtr->lock();
+        tex = QGLWidget::convertToGLFormat(tex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, tex.bits());
+        mutexPtr->unlock();
+
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+
+        glDisable(GL_TEXTURE_2D);
+
+      //------------------------------------------
+    /*
+
+    */
+      // -- OpenCV-Bild (Background) zeichnen
 
         glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, backgroundimage);
+
         glPushMatrix();
-        glLoadMatrixd((double*)modelView_matrix.data);
+        glTranslatef(0.0,0.0,-99) ;
 
-        glTranslatef(0.005,0.008,0);
-
-/*        glBegin(GL_QUADS) ;
-
-        glColor3f(0,1,0);
-        glVertex3f( -0.05,  -0.05,  0.0);
-        glVertex3f( 0.05,  -0.05,  0.0);
-        glVertex3f( 0.05,  0.05,  0.0);
-        glVertex3f( -0.05,  0.05,  0.0);
-*/
-        /*
-        glBegin(GL_QUADS) ;
-           glColor3f(0,1,0);
-            glVertex3f( 0.0,  0.0,  0.0);
-            glVertex3f( 0.05,  0.0,  0.0);
-            glVertex3f( 0.05,  0.05,  0.0);
-            glVertex3f( 0.0,  0.05,  0.0);
-
-            glColor3f(0,1,1);
-            glVertex3f( 0.0,  0.0, -0.05);
-            glVertex3f( 0.0,  0.05, -0.05);
-            glVertex3f( 0.05,  0.05, -0.05);
-            glVertex3f( 0.05,  0.0, -0.05);
-
-            glColor3f(1,1,0);
-            glVertex3f( 0.0,  0.05, -0.05);
-            glVertex3f( 0.0,  0.05,  0.0);
-            glVertex3f( 0.05,  0.05,  0.0);
-            glVertex3f( 0.05,  0.05, -0.05);
-
-            glColor3f(0,0,1);
-            glVertex3f( 0.0,  0.0, -0.05);
-            glVertex3f( 0.05,  0.0, -0.05);
-            glVertex3f( 0.05,  0.0,  0.0);
-            glVertex3f( 0.0,  0.0,  0.0);
-
-            glColor3f(1,0,1);
-            glVertex3f( 0.05,  0.0, -0.05);
-            glVertex3f( 0.05,  0.05, -0.05);
-            glVertex3f( 0.05,  0.05,  0.0);
-            glVertex3f( 0.05,  0.0,  0.0);
-
-            glColor3f(1,1,1);
-            glVertex3f( 0.0,  0.0, -0.05);
-            glVertex3f( 0.0,  0.0,  0.0);
-            glVertex3f( 0.0,  0.05,  0.0);
-            glVertex3f( 0.0,  0.05, -0.05);
-        glEnd() ;
-*/
-
-
-        // Würfel - Rechte Hand Regel: Daumen zeigt nach außen.
-        glBegin(GL_QUADS) ;
-
-            // Back
-            glColor3f(1,0,0);
-            glVertex3f( -0.01f, -0.01f, -0.01f);
-            glVertex3f( -0.01f,  0.01f, -0.01f);
-            glVertex3f(  0.01f,  0.01f, -0.01f);
-            glVertex3f(  0.01f, -0.01f, -0.01f);
-            // Front
-            glColor3f(0,0,1);
-            glVertex3f(  0.01f, -0.01f, 0.01f);
-            glVertex3f(  0.01f,  0.01f, 0.01f);
-            glVertex3f( -0.01f,  0.01f, 0.01f);
-            glVertex3f( -0.01f, -0.01f, 0.01f);
-
-            // Right
-            glColor3f(0,1,0);
-            glVertex3f(  0.01f,  0.01f,  0.01f);
-            glVertex3f(  0.01f, -0.01f,  0.01f);
-            glVertex3f(  0.01f, -0.01f, -0.01f);
-            glVertex3f(  0.01f,  0.01f, -0.01f);
-            // Left
-            glColor3f(0,1,1);
-            glVertex3f( -0.01f, -0.01f,  0.01f);
-            glVertex3f( -0.01f,  0.01f,  0.01f);
-            glVertex3f( -0.01f,  0.01f, -0.01f);
-            glVertex3f( -0.01f, -0.01f, -0.01f);
-
-            // Top
-            glColor3f(1,1,0);
-            glVertex3f(  0.01f,  0.01f, -0.01f);
-            glVertex3f( -0.01f,  0.01f, -0.01f);
-            glVertex3f( -0.01f,  0.01f,  0.01f);
-            glVertex3f(  0.01f,  0.01f,  0.01f);
-
-            // Bottom
-            glColor3f(1,1,0);
-            glVertex3f( -0.01f,  -0.01f,  0.01f);
-            glVertex3f( -0.01f,  -0.01f, -0.01f);
-            glVertex3f(  0.01f,  -0.01f, -0.01f);
-            glVertex3f(  0.01f,  -0.01f,  0.01f);
-
-
-        glEnd() ;
-
-        // drawAxis();
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,0); glVertex3f(-4, -3, -0.0);
+            glTexCoord2f(1,0); glVertex3f( 4, -3, -0.0);
+            glTexCoord2f(1,1); glVertex3f( 4,  3, -0.0);
+            glTexCoord2f(0,1); glVertex3f(-4,  3, -0.0);
+        glEnd();
 
         glPopMatrix();
 
-        drawAR = false ;
-    }
+        glDisable(GL_TEXTURE_2D);
 
+
+
+
+
+
+
+        // Vllt Fehler wenn nil zugriff!! Deshalb Status Variablen
+        if ( drawAR && projectionCalculated ) {
+
+
+
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity() ;
+            glLoadMatrixd((double*)persp.data);
+
+
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glLoadMatrixd((double*)modelView_matrix.data);
+
+            glTranslatef(0.005,0.008,0);    // Kleine Korrektur
+
+    /*        glBegin(GL_QUADS) ;
+
+            glColor3f(0,1,0);
+            glVertex3f( -0.05,  -0.05,  0.0);
+            glVertex3f( 0.05,  -0.05,  0.0);
+            glVertex3f( 0.05,  0.05,  0.0);
+            glVertex3f( -0.05,  0.05,  0.0);
+    */
+            /*
+            glBegin(GL_QUADS) ;
+               glColor3f(0,1,0);
+                glVertex3f( 0.0,  0.0,  0.0);
+                glVertex3f( 0.05,  0.0,  0.0);
+                glVertex3f( 0.05,  0.05,  0.0);
+                glVertex3f( 0.0,  0.05,  0.0);
+
+                glColor3f(0,1,1);
+                glVertex3f( 0.0,  0.0, -0.05);
+                glVertex3f( 0.0,  0.05, -0.05);
+                glVertex3f( 0.05,  0.05, -0.05);
+                glVertex3f( 0.05,  0.0, -0.05);
+
+                glColor3f(1,1,0);
+                glVertex3f( 0.0,  0.05, -0.05);
+                glVertex3f( 0.0,  0.05,  0.0);
+                glVertex3f( 0.05,  0.05,  0.0);
+                glVertex3f( 0.05,  0.05, -0.05);
+
+                glColor3f(0,0,1);
+                glVertex3f( 0.0,  0.0, -0.05);
+                glVertex3f( 0.05,  0.0, -0.05);
+                glVertex3f( 0.05,  0.0,  0.0);
+                glVertex3f( 0.0,  0.0,  0.0);
+
+                glColor3f(1,0,1);
+                glVertex3f( 0.05,  0.0, -0.05);
+                glVertex3f( 0.05,  0.05, -0.05);
+                glVertex3f( 0.05,  0.05,  0.0);
+                glVertex3f( 0.05,  0.0,  0.0);
+
+                glColor3f(1,1,1);
+                glVertex3f( 0.0,  0.0, -0.05);
+                glVertex3f( 0.0,  0.0,  0.0);
+                glVertex3f( 0.0,  0.05,  0.0);
+                glVertex3f( 0.0,  0.05, -0.05);
+            glEnd() ;
+    */
+
+
+            // Würfel - Rechte Hand Regel: Daumen zeigt nach außen.
+            glBegin(GL_QUADS) ;
+
+                // Back
+                glColor3f(1,0,0);
+                glVertex3f( -0.01f, -0.01f, -0.01f);
+                glVertex3f( -0.01f,  0.01f, -0.01f);
+                glVertex3f(  0.01f,  0.01f, -0.01f);
+                glVertex3f(  0.01f, -0.01f, -0.01f);
+                // Front
+                glColor3f(0,0,1);
+                glVertex3f(  0.01f, -0.01f, 0.01f);
+                glVertex3f(  0.01f,  0.01f, 0.01f);
+                glVertex3f( -0.01f,  0.01f, 0.01f);
+                glVertex3f( -0.01f, -0.01f, 0.01f);
+
+                // Right
+                glColor3f(0,1,0);
+                glVertex3f(  0.01f,  0.01f,  0.01f);
+                glVertex3f(  0.01f, -0.01f,  0.01f);
+                glVertex3f(  0.01f, -0.01f, -0.01f);
+                glVertex3f(  0.01f,  0.01f, -0.01f);
+                // Left
+                glColor3f(0,1,1);
+                glVertex3f( -0.01f, -0.01f,  0.01f);
+                glVertex3f( -0.01f,  0.01f,  0.01f);
+                glVertex3f( -0.01f,  0.01f, -0.01f);
+                glVertex3f( -0.01f, -0.01f, -0.01f);
+
+                // Top
+                glColor3f(1,1,0);
+                glVertex3f(  0.01f,  0.01f, -0.01f);
+                glVertex3f( -0.01f,  0.01f, -0.01f);
+                glVertex3f( -0.01f,  0.01f,  0.01f);
+                glVertex3f(  0.01f,  0.01f,  0.01f);
+
+                // Bottom
+                glColor3f(1,1,0);
+                glVertex3f( -0.01f,  -0.01f,  0.01f);
+                glVertex3f( -0.01f,  -0.01f, -0.01f);
+                glVertex3f(  0.01f,  -0.01f, -0.01f);
+                glVertex3f(  0.01f,  -0.01f,  0.01f);
+
+
+            glEnd() ;
+
+            // drawAxis();
+
+            glPopMatrix();
+
+            drawAR = false ;
+        }
+
+    } // if detectorInitialized
 
 
 
@@ -298,7 +306,7 @@ void MyGLWidget::showImage(cv::Mat image)
 
     image.copyTo(mOrigImage);
 
-    mImgRatio = (float)image.cols/(float)image.rows;
+    //mImgRatio = (float)image.cols/(float)image.rows;
 
     if( mOrigImage.channels() == 3)
         mRenderQtImg = QImage((const unsigned char*)(mOrigImage.data),
@@ -359,6 +367,7 @@ void MyGLWidget::loadProjectionMatrix() {
                 glMatrixMode(GL_PROJECTION);
                 //glLoadIdentity() ;
                 glLoadMatrixd((double*)persp.data);
+                projectionCalculated = true ;
 
             }
 

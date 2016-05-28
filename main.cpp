@@ -1,21 +1,26 @@
 #include "mainwindow.h"
 #include <QApplication>
 
+#include "calibrator.h"
+#include "detector.h"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
 
-    bool runDetection = true ;
-    bool runCalibration =  false ;
+    /*
+    //Calibrator myCvCalibrator ;
+    //myCvCalibrator.calibrateCamera();
 
-    if ( runCalibration ) {
-        w.calibrateCamera();
-    }
-    if ( runDetection ) {
-        w.startDetection();
-    }
+    Detector myCvDetector ;
+   // w.attachOriginalImageToLabel( myCvDetector . lblWebcamOriginal );
+   // w.attachDetectedImageToLabel( myCvDetector . lblWebcamDetected );
+
+    w.attachDetectorToGlImage(myCvDetector.tex);
+    myCvDetector.startDetection();
+*/
 
     return a.exec();
 }

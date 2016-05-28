@@ -8,6 +8,7 @@
 #include <QOpenGLTexture>
 #include <QtDebug>
 #include <vector>
+#include <mutex>
 
 #include<opencv2/core/core.hpp>
 #include<opencv2/highgui/highgui.hpp>
@@ -42,14 +43,25 @@ public:
     GLuint backgroundimage ;
     void showImage(cv::Mat image);
     QImage loadTexture2(char *filename, GLuint &textureID);
-    QImage tex;
+
     std::vector<cv::Vec3f> v3fCircles ;
     void sendMakerPos(std::vector<cv::Vec3f> _v3fCircles) ;
-    cv::Mat cameraMatrix;
-    void loadProjectionMatrix() ;
-    cv::Mat modelView_matrix ;
+
+
+
     bool drawAR = false ;
     bool        readyToCalcProjection = false ;
+
+    cv::Mat cameraMatrix;                // Attached to Detector
+    QImage tex;                          // Attached to Detector
+    cv::Mat modelView_matrix ;           // Attached to Detector
+    bool drawAr = false ;                // Attached to Detector
+    bool detectorInitialized = false ;   // Attached to Detector
+    bool projectionCalculated = false ;  // Attached to Detector
+    void loadProjectionMatrix() ;        // Invoked Outside (wait for Detector to calc. Camera Matrix)
+
+    std::mutex * mutexPtr ;
+
 };
 
 #endif // MYGLWIDGET_H
