@@ -1,5 +1,7 @@
 #include "detector.h"
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 Detector::Detector()
 {
     dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50);
@@ -12,26 +14,17 @@ Detector::Detector()
        return;                                         //
     }
 
-
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Detector::exitProgram() {
     //if(qtimer->isActive()) qtimer->stop();          // if timer is running, stop timer
     //QApplication::quit();                           // and exit program
 }
 
-void Detector::attachArData() {
-
-    /*
-    drawArPtr = &(arDataPtr->drawAR) ;
-    detectorInitializedPtr = &(arDataPtr->detectorInitialized);
-    texPtr = &(arDataPtr->tex);
-    modelView_matrixPtr = &(arDataPtr->modelView_matrix);
-    cameraMatrixPtr = &(arDataPtr->cameraMatrix);
-    */
-}
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Detector::run()  {
 
@@ -42,9 +35,8 @@ void Detector::run()  {
     }
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Detector::readCameraParameters(std::string filename) {
     cv::FileStorage fs(filename, cv::FileStorage::READ);
     if(!fs.isOpened())
@@ -55,6 +47,7 @@ bool Detector::readCameraParameters(std::string filename) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Detector::processFrameAndUpdateGUI() {
 
     bool drawAR = false ; // Erst mal davon ausgehen, dass kein Marker gefunden wurde
@@ -67,24 +60,16 @@ void Detector::processFrameAndUpdateGUI() {
         return;                                                                     //
     }
 
-
     std::vector< int > ids;
     std::vector< std::vector< cv::Point2f > > corners, rejected;
-    //std::vector< cv::Vec3d > rvecs, tvecs;
-
 
     cv::aruco::detectMarkers(imageOriginal, dictionary, corners, ids, detectorParams, rejected) ;
 
     if ( ids.size() > 0 ) {
-        cv::aruco::estimatePoseSingleMarkers(corners, 0.055, cameraMatrix, distCoeffs, rvecs, tvecs) ;
+        cv::aruco::estimatePoseSingleMarkers(corners, 0.055f, cameraMatrix, distCoeffs, rvecs, tvecs) ;
         calcModelViewMatrixFirstId();
         drawAR = true ;
-
-        //*drawArPtr = true ;
-
     }
-
-
 
 
     imageOriginal.copyTo(imageCopy);
@@ -93,7 +78,7 @@ void Detector::processFrameAndUpdateGUI() {
         cv::aruco::drawDetectedMarkers(imageCopy,corners,ids) ;
 
         for (unsigned int i=0 ; i < ids.size() ; i++) {
-            cv::aruco::drawAxis(imageCopy, cameraMatrix, distCoeffs, rvecs[i], tvecs[i], 0.055 * 0.5f ) ;
+            cv::aruco::drawAxis(imageCopy, cameraMatrix, distCoeffs, rvecs[i], tvecs[i], 0.055f * 0.5f ) ;
         }
 
     }
@@ -101,11 +86,10 @@ void Detector::processFrameAndUpdateGUI() {
 
     // Weitergabe
     //QImage qimgOriginal = convertOpenCVMatToQtQImage(imageOriginal);                         // convert from OpenCV Mat to Qt QImage
- //   QImage qimgCopy = convertOpenCVMatToQtQImage(imageCopy);                       //
+    //   QImage qimgCopy = convertOpenCVMatToQtQImage(imageCopy);                       //
 
 
-
-    convertImage(imageCopy);
+    convertImage(imageCopy);    // Bild für OpenGL aufbereiten
 
     // Daten an das AR-Datenmodul weiterreichen
     arDataPtr->mutex.lock();
@@ -119,8 +103,6 @@ void Detector::processFrameAndUpdateGUI() {
     //ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgOriginal));           // show images on form labels
     //ui->lblThresh->setPixmap(QPixmap::fromImage(qimgCopy));         //
 
-    //lblWebcamOriginal->setPixmap(QPixmap::fromImage(qimgOriginal));
-    //cv::imshow("Webcam",imageOriginal);
     cv::imshow("Marker",imageCopy);
     cv::moveWindow("Marker",0,0);
 
@@ -129,33 +111,25 @@ void Detector::processFrameAndUpdateGUI() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Detector::initializeDetection() {
 
     // ToDo: Beim späteren Auslagern hier die relevanten Attribute initialiseren.
     detectorParams = cv::aruco::DetectorParameters::create();
     detectorParams->doCornerRefinement ;    // Feine Ecken (später für Pose Estimation)
 
-
     bool status = false ;
     if (estimatePos) status = readCameraParameters("CameraParams.txt") ;
         arDataPtr->cameraMatrix = cameraMatrix ;
-    //*cameraMatrixPtr = cameraMatrix ;  // OpenGL die Camera Matrix geben
-    //ui->widget->cameraMatrix = cameraMatrix ;  // OpenGL die Camera Matrix geben
-
-
-    //ui->widget->readyToCalcProjection = true ;
-    //ui->widget->loadProjectionMatrix();
     return status ;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-void Detector::calcModelViewMatrixFirstId() {
 
+void Detector::calcModelViewMatrixFirstId() {
 
     cv::Mat Rvec (rvecs[0],CV_32F) ;
     cv::Mat Tvec (tvecs[0],CV_32F) ;
-
 
     cv::Mat Rot(3,3,CV_32FC1);
     cv::Rodrigues(Rvec,Rot);
@@ -173,36 +147,13 @@ void Detector::calcModelViewMatrixFirstId() {
 
     para = cvToGl * para;
 
-    //cv::Mat(para.t()).copyTo( *modelView_matrixPtr ); // transpose to col-major for OpenGL
-
-
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void Detector::startDetection() {
 
-
-
     bool start = false ;
     start = initializeDetection() ;
-
-    /*
-    qtimer = new QTimer(this);                          // instantiate timer
-    connect(qtimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdateGUI()));     // associate timer to processFrameAndUpdateGUI
-
-    if ( start ) {
-        qtimer->start(40);
-    }
-    */
-
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-void Detector::stopDetection() {
-
-    //qtimer->stop();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -219,12 +170,12 @@ QImage Detector::convertOpenCVMatToQtQImage(cv::Mat mat) {
     return QImage();        // return a blank QImage if the above did not work
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Detector::convertImage(cv::Mat image)
 {
 
     image.copyTo(mOrigImage);
-
-    //mImgRatio = (float)image.cols/(float)image.rows;
 
     if( mOrigImage.channels() == 3)
         mRenderQtImg = QImage((const unsigned char*)(mOrigImage.data),
@@ -235,16 +186,4 @@ void Detector::convertImage(cv::Mat image)
                               mOrigImage.cols, mOrigImage.rows,
                               mOrigImage.step, QImage::Format_Indexed8);
 
-   // mRenderQtImg = mRenderQtImg.mirrored();
-
-
-
-     //*texPtr = mRenderQtImg;
-
-    // OpenGL Widget sagen, dass es nun ein Bild gibt und es anfangen kann dieses zu "zeichnen"
-    //*detectorInitializedPtr = true ;
-
-    // Berechne Model View für den ersten Marker
-
-    //updateGL();
 }

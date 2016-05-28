@@ -29,7 +29,6 @@ class Detector : public QThread
 private:
 
     cv::VideoCapture capWebcam;             // Capture object to use with webcam
-   // QTimer* qtimer;                 // timer for processFrameAndUpdateGUI()
     QImage convertOpenCVMatToQtQImage(cv::Mat mat);       // function prototype
     cv::Ptr<cv::aruco::Dictionary> dictionary ;
 
@@ -47,41 +46,26 @@ private:
     std::vector< cv::Vec3d > rvecs, tvecs;
 
     bool readCameraParameters(std::string filename) ;
-
-
     bool initializeDetection();
 
     cv::Mat modelViewFirstId ;
     void calcModelViewMatrixFirstId();
     void exitProgram();                    // function prototype
 
-
     QImage      mRenderQtImg;           /// Qt image to be rendered
     cv::Mat     mOrigImage;             /// original OpenCV image to be shown
     void convertImage(cv::Mat image);
-public slots:
-    void processFrameAndUpdateGUI();                // function prototype
 
 public:    
     Detector();
 
+    void processFrameAndUpdateGUI();                // function prototype
     bool runDetection = true ;
     void run() ;    // Thread Method
 
-    QLabel* lblWebcamOriginal ;
-    QLabel* lblWebcamDetected ;
-
     void startDetection();
-    void stopDetection();
 
     ArData * arDataPtr ;
-    void attachArData();
-
-   // bool * drawArPtr ;  // Marker erkannt?
-   // bool * detectorInitializedPtr; // OpenCV Detector liefert Bilder?
-   // QImage * texPtr ;
-   // cv::Mat * modelView_matrixPtr ;
-   // cv::Mat * cameraMatrixPtr ;
 
     cv::Mat_<double> para ;
 

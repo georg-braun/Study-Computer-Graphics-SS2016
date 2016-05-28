@@ -28,14 +28,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    std::mutex imageMutex ;
     ArData arData ;
 
     void startProgram() ;
-
-    void attachOriginalImageToLabel( QLabel* lblDetectorRef ) ;
-    void attachDetectedImageToLabel( QLabel* lblDetectorRef ) ;
-    void attachDetectorToGlImage ( QImage& image ) ;
 
 };
 

@@ -25,18 +25,6 @@ void MainWindow::startProgram() {
     myCvDetector.arDataPtr = &arData ;
     ui->widget->arDataPtr = &arData ;
 
-    //myCvDetector.attachArData();
-    //ui->widget->attachArData();
-
-
-    /*
-    myCvDetector.drawArPtr = &(ui->widget->drawAR);
-    myCvDetector.detectorInitializedPtr = &(ui->widget->detectorInitialized);
-    myCvDetector.texPtr = &(ui->widget->tex) ;
-    myCvDetector.modelView_matrixPtr = &(ui->widget->modelView_matrix);
-    myCvDetector.cameraMatrixPtr = &(ui->widget->cameraMatrix);
-    */
-
    // w.attachOriginalImageToLabel( myCvDetector . lblWebcamOriginal );
    // w.attachDetectedImageToLabel( myCvDetector . lblWebcamDetected );
 
@@ -48,17 +36,3 @@ void MainWindow::startProgram() {
 
 }
 
-void MainWindow::attachOriginalImageToLabel( QLabel* lblDetectorRef ) {
-
-    lblDetectorRef = ui->lblOriginal ;
-}
-
-
-void MainWindow::attachDetectedImageToLabel( QLabel* lblDetectorRef ) {
-    lblDetectorRef = ui->lblThresh ;
-}
-
-void MainWindow::attachDetectorToGlImage ( QImage& image ) {
-   // image = &(ui->widget->tex) ;
-
-}
