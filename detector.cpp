@@ -30,7 +30,7 @@ void Detector::run()  {
 
     while ( runDetection ) {
         msleep(40);
-        qDebug() << "Hello Detector Thread :)" ;
+//        qDebug() << "Hello Detector Thread :)" ;
         processFrameAndUpdateGUI();
     }
 }
@@ -93,7 +93,11 @@ void Detector::processFrameAndUpdateGUI() {
 
     // Daten an das AR-Datenmodul weiterreichen
     arDataPtr->mutex.lock();
-    cv::Mat(para.t()).copyTo( arDataPtr->modelView_matrix ); // transpose to col-major for OpenGL
+
+    // Transponieren entfernt, da in QMatrix gespeichert wird und diese dann für OpenGL transponiert.
+    //cv::Mat(para.t()).copyTo( arDataPtr->modelView_matrix ); // transpose to col-major for OpenGL
+    para.copyTo( arDataPtr->modelView_matrix ); // transpose to col-major for OpenGL
+
     arDataPtr->tex = mRenderQtImg;
     arDataPtr->drawAR = drawAR ;  // Marker wurde gefunden, also was AR Zeug machen ;)
     // OpenGL Widget sagen, dass es nun ein Bild gibt und es anfangen kann dieses zu "zeichnen"

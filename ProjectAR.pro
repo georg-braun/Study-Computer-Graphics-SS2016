@@ -54,4 +54,9 @@ LIBS +=-Lc:\\OpenCV-3.1.0\\mybuild\\lib\\Debug \
     -lopencv_videoio310d \
     -lopencv_videostab310d
 
+RESOURCES += \
+    shader.qrc
+
+DISTFILES +=
+
 

@@ -8,6 +8,7 @@
 #include <QOpenGLTexture>
 #include <QtDebug>
 #include <vector>
+#include <stack>
 
 #include "ardata.h"
 
@@ -16,8 +17,12 @@
 #include<opencv2/imgproc/imgproc.hpp>
 
 #include<QOpenGLBuffer>
+#include<QOpenGLShaderProgram>
 
-static const int tupelSize     = 4 ;
+typedef struct {
+    GLfloat x, y, z, h;
+    GLfloat r, g, b, t;
+} Vertex;
 static const int verticesCount = 8 ;
 
 class MyGLWidget : public QGLWidget
@@ -52,7 +57,7 @@ protected:
 
  //-------------------------
     // Primitive
-    GLfloat  vertices[verticesCount*(2*tupelSize)] ;
+   Vertex   vertices[verticesCount] ;
     GLubyte  indicies[24] ; // 6 Flächen mit je 4 Indizies
 
     // Buffer
@@ -67,6 +72,14 @@ protected:
                      GLfloat r ,
                      GLfloat g ,
                      GLfloat b ) ;
+
+    // Shader
+    QOpenGLShaderProgram shaderProgram;
+    void initalizeShader();
+
+    // Matritzen
+    std::stack<QMatrix4x4> projectionMatrixStack ;
+    std::stack<QMatrix4x4> modelViewMatrixStack ;
 //-------------------------
 
 

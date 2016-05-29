@@ -60,8 +60,26 @@ void MyGLWidget::initializeGL()
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     glDisable(GL_TEXTURE_2D);
 
+
+//    glEnable(GL_DEPTH_TEST);                                // Activate depth comparisons and update depth buffer
+
+//    glEnable(GL_CULL_FACE);                                 // Draw Front or Back?
+
+//    glDepthFunc(GL_LEQUAL);                                 // Specify the depth buffer
+
+    //glShadeModel(GL_SMOOTH);                                // !Deprecated GL_FLAT or GL_SMOOTH (interpolated)
+
+//    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);      // Are there Interpretations? Set hint!
+
+//    glClearDepth(1.0f);                                     // Clear value for depth buffer (used by glClear)
+
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);                   // Clear values used by glClear (Color-Buffer)
+
+
+
     fillBuffer();
     initalizeBuffer();
+    initalizeShader();
 }
 
 
@@ -79,6 +97,18 @@ void MyGLWidget::resizeGL(int width, int height)
 
 void MyGLWidget::paintGL()
 {
+
+    // Clear buffer to set color and alpha
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+
+
+
+
+
+
+
 
     fetchArData();
 
@@ -122,33 +152,68 @@ void MyGLWidget::paintGL()
         // Vllt Fehler wenn nil zugriff!! Deshalb Status Variablen
         if ( drawAR && projectionCalculated ) {
 
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity() ;
-            glLoadMatrixd((double*)persp.data);
+
+                // MODELVIEW TRANSFORMATION (Neues OpenGL)
+                QMatrix4x4 modelViewMatrix = QMatrix4x4(  modelView_matrix.at<double>(0,0) , modelView_matrix.at<double>(0,1) , modelView_matrix.at<double>(0,2) , modelView_matrix.at<double>(0,3) ,
+                                                          modelView_matrix.at<double>(1,0) , modelView_matrix.at<double>(1,1) , modelView_matrix.at<double>(1,2) , modelView_matrix.at<double>(1,3) ,
+                                                          modelView_matrix.at<double>(2,0) , modelView_matrix.at<double>(2,1) , modelView_matrix.at<double>(2,2) , modelView_matrix.at<double>(2,3) ,
+                                                          modelView_matrix.at<double>(3,0) , modelView_matrix.at<double>(3,1) , modelView_matrix.at<double>(3,2) , modelView_matrix.at<double>(3,3)
+                                                          );
 
 
-            glMatrixMode(GL_MODELVIEW);
-            glPushMatrix();
-            glLoadMatrixd((double*)modelView_matrix.data);
+                QMatrix4x4 modelViewProjectionMatrix  = QMatrix4x4(  persp.at<double>(0,0) , persp.at<double>(0,1) , persp.at<double>(0,2) , persp.at<double>(0,3) ,
+                                                                     persp.at<double>(1,0) , persp.at<double>(1,1) , persp.at<double>(1,2) , persp.at<double>(1,3) ,
+                                                                     persp.at<double>(2,0) , persp.at<double>(2,1) , persp.at<double>(2,2) , persp.at<double>(2,3) ,
+                                                                     persp.at<double>(3,0) , persp.at<double>(3,1) , persp.at<double>(3,2) , persp.at<double>(3,3)
+                                                                     );
 
-            glTranslatef(0.005,0.008,0);    // Kleine Korrektur
+                modelViewProjectionMatrix = modelViewProjectionMatrix * modelViewMatrix ;
 
-            // Würfel zeichnen
-            vbo.bind();
-            ibo.bind();
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-            glVertexPointer(3,GL_FLOAT,sizeof(GLfloat)*8,(char*)NULL+0);
-            glColorPointer(3,GL_FLOAT,sizeof(GLfloat)*8,(char*)NULL+sizeof(GLfloat)*4) ;
-            glDrawElements(GL_QUADS,24,GL_UNSIGNED_BYTE,0);
-            glDisableClientState(GL_VERTEX_ARRAY);
-            glDisableClientState(GL_COLOR_ARRAY);
-            vbo.release();
-            ibo.release();
 
-            // drawAxis();
+                // Binde das Shader-Programm an den OpenGL-Kontext
+                shaderProgram.bind();
+                vbo.bind();
+                ibo.bind();
 
-            glPopMatrix();
+                // Lokalisiere bzw. definiere die Schnittstelle für die Eckpunkte
+                int attrVertices = 0;
+                attrVertices = shaderProgram.attributeLocation("vert");  // #version 130
+
+                // Lokalisiere bzw. definiere die Schnittstelle für die Farben
+                int attrColors = 1;
+                attrColors = shaderProgram.attributeLocation("color");  // #version 130
+
+                // Aktiviere die Verwendung der Attribute-Arrays
+                shaderProgram.enableAttributeArray(attrVertices);
+                shaderProgram.enableAttributeArray(attrColors);
+
+                // Lokalisiere bzw. definierte die Schnittstelle für die Transformationsmatrix
+                // Die Matrix kann direkt übergeben werden, da setUniformValue für diesen Typ überladen ist.
+                int unifMatrix = 0 ;
+                unifMatrix = shaderProgram.uniformLocation("matrix");
+                Q_ASSERT(unifMatrix >= 0) ;
+                shaderProgram.setUniformValue(unifMatrix,modelViewProjectionMatrix);
+
+                // Fülle die Attribute-Buffer mit den konkreten Daten
+                int offset = 0 ;
+                int stride = 8 * sizeof(GLfloat) ;
+                shaderProgram.setAttributeBuffer(attrVertices,GL_FLOAT,offset,4,stride);
+                offset += 4 * sizeof(GLfloat);
+                shaderProgram.setAttributeBuffer(attrColors,GL_FLOAT,offset,4,stride);
+
+                glDrawElements ( GL_QUADS,                          // Primitive
+                                 24,                                // Wieviele Indizies
+                                 GL_UNSIGNED_BYTE,                  // Datentyp
+                                 0);                                // 0 = Nehme den Index Buffer
+
+                // Deaktiviere die Verwendung der Attribute Arrays
+                shaderProgram.disableAttributeArray(attrVertices);
+                shaderProgram.disableAttributeArray(attrColors);
+
+
+                vbo.release();
+                ibo.release();
+                shaderProgram.release();
 
             drawAR = false ;
         }
@@ -218,8 +283,8 @@ void MyGLWidget::loadProjectionMatrix() {
                 persp(2,3) = -2.0*farVal*nearVal / (farVal-nearVal);
                 persp(3,2) = -1.0;
 
-
-                persp = persp.t(); //to col-major
+                // Transponieren entfernt, da in QMatrix gespeichert wird und diese dann für OpenGL transponiert.
+                //persp = persp.t(); //to col-major
 
                 glMatrixMode(GL_PROJECTION);;
                 glLoadMatrixd((double*)persp.data);
@@ -239,15 +304,14 @@ void MyGLWidget::addVertice(int     verticeNo ,
                             GLfloat g ,
                             GLfloat b )
 {
-    int arrayPos = verticeNo*(2*tupelSize) ;
-    vertices[arrayPos  ] = x ;
-    vertices[arrayPos+1] = y ;
-    vertices[arrayPos+2] = z ;
-    vertices[arrayPos+3] = 1 ;
-    vertices[arrayPos+4] = r ;
-    vertices[arrayPos+5] = g ;
-    vertices[arrayPos+6] = b ;
-    vertices[arrayPos+7] = 1 ;
+    vertices[verticeNo].x = x ;
+        vertices[verticeNo].y = y ;
+        vertices[verticeNo].z = z ;
+        vertices[verticeNo].h = 1 ;
+        vertices[verticeNo].r = r ;
+        vertices[verticeNo].g = g ;
+        vertices[verticeNo].b = b ;
+        vertices[verticeNo].t = 1 ;
 }
 
 //---------------------------------------------------------------------------------------------------------
@@ -258,7 +322,7 @@ void MyGLWidget::initalizeBuffer()
     vbo.create();
     vbo.bind();
     vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    vbo.allocate(vertices,sizeof(GLfloat) * (2*tupelSize) * verticesCount );
+    vbo.allocate(vertices,sizeof(GLfloat) * 8 * verticesCount );
     vbo.release();
     // Erzeuge Index-Buffer
     ibo.create();
@@ -275,15 +339,15 @@ void MyGLWidget::fillBuffer()
 {
     // Vertices
     // Back
-    addVertice(0 , -0.01f , -0.01f , -0.01f , 1 , 0 , 0 );
-    addVertice(1 ,  0.01f , -0.01f , -0.01f , 0 , 1 , 0 );
-    addVertice(2 ,  0.01f ,  0.01f , -0.01f , 1 , 0 , 1 );
-    addVertice(3 , -0.01f ,  0.01f , -0.01f , 0 , 0 , 1 );
-    // Front
-    addVertice(4 , -0.01f , -0.01f ,  0.01f , 1 , 0 , 1 );
-    addVertice(5 ,  0.01f , -0.01f ,  0.01f , 1 , 1 , 0 );
-    addVertice(6 ,  0.01f ,  0.01f ,  0.01f , 0 , 1 , 1 );
-    addVertice(7 , -0.01f ,  0.01f ,  0.01f , 1 , 0 , 0 );
+    addVertice(0 , -0.1f , -0.1f , -0.1f , 1 , 0 , 0 );
+    addVertice(1 ,  0.1f , -0.1f , -0.1f , 0 , 1 , 0 );
+    addVertice(2 ,  0.1f ,  0.1f , -0.1f , 1 , 0 , 1 );
+    addVertice(3 , -0.1f ,  0.1f , -0.1f , 0 , 0 , 1 );
+    // Front        0.1     0.1     0.1
+    addVertice(4 , -0.1f , -0.1f ,  0.1f , 1 , 0 , 1 );
+    addVertice(5 ,  0.1f , -0.1f ,  0.1f , 1 , 1 , 0 );
+    addVertice(6 ,  0.1f ,  0.1f ,  0.1f , 0 , 1 , 1 );
+    addVertice(7 , -0.1f ,  0.1f ,  0.1f , 1 , 0 , 0 );
 
     // Indicies - Cube
     // Front
@@ -291,7 +355,6 @@ void MyGLWidget::fillBuffer()
     indicies[1] = 5 ;
     indicies[2] = 6 ;
     indicies[3] = 7 ;
-
     // Back
     indicies[4] = 3 ;
     indicies[5] = 2 ;
@@ -317,5 +380,25 @@ void MyGLWidget::fillBuffer()
     indicies[21] = 0 ;
     indicies[22] = 1 ;
     indicies[23] = 5 ;
+
+}
+
+//----------------------------------------------------------------------
+
+
+void MyGLWidget::initalizeShader()
+{
+
+
+    // Initialisierung Shader
+    // Lade Shader-Source aus externen Dateien
+    shaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                          ":/default330.vert") ;
+
+    shaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                          ":/default330.frag") ;
+    // Kompiliere und linke die Shader-Programme
+    shaderProgram.link() ;
+
 
 }
