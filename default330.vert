@@ -14,6 +14,7 @@ layout(location=0)out vec4 col;
 
 void main()
 {
-    col = color;
+    //col = color;
+    col = vec4(0.0, 1.0f, 0.0f, 0.0f ); // P3.5 - Set Fix Color //color;
     gl_Position = matrix * vert;
 }

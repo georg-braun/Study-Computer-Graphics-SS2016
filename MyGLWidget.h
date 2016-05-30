@@ -56,17 +56,22 @@ protected:
     QOpenGLBuffer vbo ;
     QOpenGLBuffer ibo ;
 
+    void loadModel() ;
 
  //-------------------------
-    // Primitive
-   Vertex   vertices[verticesCount] ;
-    GLubyte  indicies[24] ; // 6 Flächen mit je 4 Indizies
+    // Dynamisch
+    GLfloat* vboData ;
+    GLuint* indexData ;
+    unsigned int vboLength ;
+    unsigned int iboLength ;
+
+
 
     // Buffer
     void initalizeBuffer();
     void fillBuffer();
 
-
+/*
     void addVertice(int     verticeNo ,
                      GLfloat x ,
                      GLfloat y ,
@@ -74,7 +79,7 @@ protected:
                      GLfloat r ,
                      GLfloat g ,
                      GLfloat b ) ;
-
+*/
     // Shader
     QOpenGLShaderProgram shaderProgram;
     void initalizeShader();
