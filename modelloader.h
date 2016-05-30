@@ -14,7 +14,6 @@
 #ifndef MODELLOADER_H
 #define MODELLOADER_H
 
-#include <windows.h>
 #include <GL/gl.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>

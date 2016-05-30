@@ -86,7 +86,9 @@ void Detector::processFrameAndUpdateGUI() {
 
     // Weitergabe
     //QImage qimgOriginal = convertOpenCVMatToQtQImage(imageOriginal);                         // convert from OpenCV Mat to Qt QImage
-    //   QImage qimgCopy = convertOpenCVMatToQtQImage(imageCopy);                       //
+    cv::Mat imageDisplayCoord ;
+    imageCopy.copyTo(imageDisplayCoord);
+    QImage qimgCoord = convertOpenCVMatToQtQImage(imageDisplayCoord);                       //
 
 
     convertImage(imageCopy);    // Bild für OpenGL aufbereiten
@@ -104,11 +106,12 @@ void Detector::processFrameAndUpdateGUI() {
     arDataPtr->detectorInitialized = true ;
     arDataPtr->mutex.unlock();
 
+    lblOriginal->setPixmap(QPixmap::fromImage(qimgCoord));
     //ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgOriginal));           // show images on form labels
     //ui->lblThresh->setPixmap(QPixmap::fromImage(qimgCopy));         //
 
-    cv::imshow("Marker",imageCopy);
-    cv::moveWindow("Marker",0,0);
+    //cv::imshow("Marker",imageCopy);
+    //cv::moveWindow("Marker",0,0);
 
    rvecs.clear();
    tvecs.clear();
@@ -124,7 +127,7 @@ bool Detector::initializeDetection() {
 
     bool status = false ;
     if (estimatePos) status = readCameraParameters("CameraParams.txt") ;
-        arDataPtr->cameraMatrix = cameraMatrix ;
+    if (status) arDataPtr->cameraMatrix = cameraMatrix ;
     return status ;
 }
 
@@ -158,6 +161,7 @@ void Detector::startDetection() {
 
     bool start = false ;
     start = initializeDetection() ;
+    // ToDo: Hier noch Wert mit zurückgeben, falls die Initialisierung nicht geklappt hat!
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

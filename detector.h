@@ -66,6 +66,7 @@ public:
     void startDetection();
 
     ArData * arDataPtr ;
+    QLabel * lblOriginal ;
 
     cv::Mat_<double> para ;
 

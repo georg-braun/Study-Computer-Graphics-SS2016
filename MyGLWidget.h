@@ -19,6 +19,8 @@
 #include<QOpenGLBuffer>
 #include<QOpenGLShaderProgram>
 
+#include"modelloader.h"
+
 typedef struct {
     GLfloat x, y, z, h;
     GLfloat r, g, b, t;
@@ -31,7 +33,7 @@ private:
     Q_OBJECT    // declare own signals and slots (MOC-System)
 protected:
 
-    QTimer timer = new QTimer(this) ;
+    QTimer timer ;//= new QTimer(this) ;
 
     void initializeGL();
     void resizeGL(int width, int height);

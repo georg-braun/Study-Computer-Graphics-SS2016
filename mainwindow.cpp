@@ -24,6 +24,8 @@ void MainWindow::startProgram() {
     // Detector und OpenGL an gemeinsame Datenbasis anklemmen
     myCvDetector.arDataPtr = &arData ;
     ui->widget->arDataPtr = &arData ;
+    myCvDetector.lblOriginal = ui->lblOriginal ;
+
 
    // w.attachOriginalImageToLabel( myCvDetector . lblWebcamOriginal );
    // w.attachDetectedImageToLabel( myCvDetector . lblWebcamDetected );

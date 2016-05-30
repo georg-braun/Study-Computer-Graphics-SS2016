@@ -18,45 +18,47 @@ SOURCES += main.cpp\
     markergenerator.cpp \
     calibrator.cpp \
     detector.cpp \
-    ardata.cpp
+    ardata.cpp \
+    modelloader.cpp
 
 HEADERS  += mainwindow.h \
     MyGLWidget.h \
     markergenerator.h \
     calibrator.h \
     detector.h \
-    ardata.h
+    ardata.h \
+    modelloader.h
 
 FORMS    += mainwindow.ui
 
 LIBS += -lopengl32
 
+LIBS += -LC:/assimp/code -lassimp
+INCLUDEPATH += c:/assimp/include
+DEPENDPATH += c:/assimp/include
 
-INCLUDEPATH += c:\\OpenCV-3.1.0\\opencv\\build\\include
 
-LIBS +=-Lc:\\OpenCV-3.1.0\\mybuild\\lib\\Debug \
-    -lopencv_aruco310d \
-    -lopencv_calib3d310d \
-    -lopencv_core310d \
-    -lopencv_features2d310d \
-    -lopencv_flann310d \
-    -lopencv_highgui310d \
-    -lopencv_imgcodecs310d \
-    -lopencv_imgproc310d \
-    -lopencv_ml310d \
-    -lopencv_objdetect310d \
-    -lopencv_photo310d \
-    -lopencv_shape310d \
-    -lopencv_stitching310d \
-    -lopencv_superres310d \
-    -lopencv_ts310d \
-    -lopencv_video310d \
-    -lopencv_videoio310d \
-    -lopencv_videostab310d
+INCLUDEPATH += C:/opencvbin/install/include
+LIBS += -LC:\\opencvbin\\bin \
+    libopencv_aruco310 \
+    libopencv_calib3d310 \
+    libopencv_core310 \
+    libopencv_features2d310 \
+    libopencv_flann310 \
+    libopencv_highgui310 \
+    libopencv_imgcodecs310 \
+    libopencv_imgproc310 \
+    libopencv_ml310 \
+    libopencv_objdetect310 \
+    libopencv_photo310 \
+    libopencv_shape310 \
+    libopencv_stitching310 \
+    libopencv_superres310 \
+    libopencv_video310 \
+    libopencv_videoio310 \
+    libopencv_videostab310
 
 RESOURCES += \
     shader.qrc
-
-DISTFILES +=
 
 
