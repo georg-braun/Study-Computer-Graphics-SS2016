@@ -9,12 +9,14 @@
 
 layout(location=0)uniform mat4 matrix;
 layout(location=0)in vec4 vert;
-layout(location=1)in vec4 color;
+layout(location=1)in vec4 texCoord;
 layout(location=0)out vec4 col;
+layout(location=1)out vec4 texC;
 
 void main()
 {
     //col = color;
     col = vec4(0.0, 1.0f, 0.0f, 0.0f ); // P3.5 - Set Fix Color //color;
+    texC = texCoord ;
     gl_Position = matrix * vert;
 }

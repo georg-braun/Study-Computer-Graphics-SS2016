@@ -18,6 +18,7 @@
 
 #include<QOpenGLBuffer>
 #include<QOpenGLShaderProgram>
+#include<QOpenGLTexture>
 
 #include"modelloader.h"
 
@@ -57,6 +58,11 @@ protected:
     void drawAxis();
     void fetchArData() ;
 
+    // Textures
+    QOpenGLTexture* texMarker0 ;
+    QOpenGLTexture* texMarker1 ;
+    QOpenGLTexture* texMarker2 ;
+
     // Buffer
     QOpenGLBuffer vboMarker0 ;
     QOpenGLBuffer iboMarker0 ;
@@ -86,6 +92,7 @@ protected:
     // Buffer
     void initalizeBuffer();
     void fillBuffer();
+    void initializeTextures();
 
 /*
     void addVertice(int     verticeNo ,

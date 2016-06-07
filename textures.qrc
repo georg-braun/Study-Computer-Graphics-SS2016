@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>frog.jpg</file>
+        <file>mercurymap.jpg</file>
+        <file>sombrero.jpg</file>
+    </qresource>
+</RCC>

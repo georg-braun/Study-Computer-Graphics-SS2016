@@ -55,12 +55,13 @@ void MyGLWidget::loadModel()
       // Wenn erfolgreich, generiere VBO und Index-Array
       if (res) {
           // Frage zu erwartende Array-Längen ab
-          vboLength[0] = model->lengthOfSimpleVBO();
+          vboLength[0] = model->lengthOfVBO(0,false,true);
           iboLength[0] = model->lengthOfIndexArray();
           // Generiere VBO und Index-Array
           vboData[0] = new GLfloat[vboLength[0]];
           indexData[0] = new GLuint[iboLength[0]];
-          model->genSimpleVBO(vboData[0]);
+          //model->genSimpleVBO(vboData[0]);
+          model->genVBO(vboData[0],0,false,true);
           model->genIndexArray(indexData[0]);
       }
       else {
@@ -71,16 +72,17 @@ void MyGLWidget::loadModel()
 
       // Planet
       model = new ModelLoader() ;
-      res = model->loadObjectFromFile("Models/PORIGON_float.obj");
+      //res = model->loadObjectFromFile("Models/sphere_low.obj");
+      res = model->loadObjectFromFile("Models/sombrero.obj");
       // Wenn erfolgreich, generiere VBO und Index-Array
       if (res) {
           // Frage zu erwartende Array-Längen ab
-          vboLength[1] = model->lengthOfSimpleVBO();
+          vboLength[1] = model->lengthOfVBO(0,false,true);
           iboLength[1] = model->lengthOfIndexArray();
           // Generiere VBO und Index-Array
           vboData[1] = new GLfloat[vboLength[1]];
           indexData[1] = new GLuint[iboLength[1]];
-          model->genSimpleVBO(vboData[1]);
+          model->genVBO(vboData[1],0,false,true);
           model->genIndexArray(indexData[1]);
       }
       else {
@@ -90,6 +92,31 @@ void MyGLWidget::loadModel()
       delete model ;
 }
 
+//---------------------------------------------------------------------------------------------------------
+
+void MyGLWidget::initializeTextures() {
+
+
+    // Initialization
+    glEnable(GL_TEXTURE_2D);
+
+    texMarker0 = new QOpenGLTexture(QImage(":/frog.jpg").mirrored()) ;
+    texMarker0->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+    texMarker0->setMagnificationFilter(QOpenGLTexture::Linear);
+    //Q_ASSERT( texMarker0->textureId() == 0 ) ;
+
+    //texMarker1 = new QOpenGLTexture(QImage(":/mercurymap.jpg").mirrored()) ;
+    texMarker1 = new QOpenGLTexture(QImage(":/sombrero.jpg").mirrored()) ;
+    texMarker1->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+    texMarker1->setMagnificationFilter(QOpenGLTexture::Linear);
+    //Q_ASSERT( texMarker0->textureId() == 0 ) ;
+
+    texMarker2 = new QOpenGLTexture(QImage(":/frog.jpg").mirrored()) ;
+    texMarker2->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+    texMarker2->setMagnificationFilter(QOpenGLTexture::Linear);
+    //Q_ASSERT( texMarker0->textureId() == 0 ) ;
+
+}
 
 //---------------------------------------------------------------------------------------------------------
 
@@ -138,6 +165,7 @@ void MyGLWidget::initializeGL()
 
     //fillBuffer();
     loadModel();
+    initializeTextures();
     initalizeBuffer();
     initalizeShader();
 }
@@ -242,8 +270,12 @@ void MyGLWidget::paintGL()
                 attrVertices = 0;
                 attrVertices = shaderProgram.attributeLocation("vert");  // #version 130
 
+                int attrTexCoords = 3 ;
+                attrTexCoords = shaderProgram.attributeLocation("texCoord"); // #version 130
+
                 // Aktiviere die Verwendung der Attribute-Arrays
                 shaderProgram.enableAttributeArray(attrVertices);
+                shaderProgram.enableAttributeArray(attrTexCoords);
 
                 // Lokalisiere bzw. definierte die Schnittstelle für die Transformationsmatrix
                 // Die Matrix kann direkt übergeben werden, da setUniformValue für diesen Typ überladen ist.
@@ -256,11 +288,16 @@ void MyGLWidget::paintGL()
 
                 shaderProgram.setUniformValue(unifMatrix,modelViewProjectionMatrix);
 
+                texMarker0->bind();
+                shaderProgram.setUniformValue("texture",0);
+
 
                 // Fülle die Attribute-Buffer mit den konkreten Daten
                 int offset = 0 ;
-                int stride = 4 * sizeof(GLfloat) ;
+                int stride = 8 * sizeof(GLfloat) ;
                 shaderProgram.setAttributeBuffer(attrVertices,GL_FLOAT,offset,4,stride);
+                offset += 4*sizeof(GLfloat);
+                shaderProgram.setAttributeBuffer(attrTexCoords,GL_FLOAT,offset,4,stride);
 
                 glDrawElements ( GL_TRIANGLES,                      // Primitive
                                  iboLength[0],                         // Wieviele Indizies
@@ -268,9 +305,11 @@ void MyGLWidget::paintGL()
                                  0);                                // 0 = Nehme den Index Buffer
                 // Deaktiviere die Verwendung der Attribute Arrays
                 shaderProgram.disableAttributeArray(attrVertices);
+                shaderProgram.disableAttributeArray(attrTexCoords);
 
                 vboMarker0.release();
                 iboMarker0.release();
+                texMarker0->release();
 
 
         } // if ( marker0Detected && drawAR && projectionCalculated )
@@ -278,7 +317,7 @@ void MyGLWidget::paintGL()
 
         // --- Marker 1 ---
         if ( marker1Detected && drawAR && projectionCalculated ) {
-            qDebug() << marker1Detected ;
+
             // MODELVIEW TRANSFORMATION (Neues OpenGL)
             QMatrix4x4 modelViewMatrix = QMatrix4x4(  marker1ModelView.at<double>(0,0) , marker1ModelView.at<double>(0,1) , marker1ModelView.at<double>(0,2) , marker1ModelView.at<double>(0,3) ,
                                                       marker1ModelView.at<double>(1,0) , marker1ModelView.at<double>(1,1) , marker1ModelView.at<double>(1,2) , marker1ModelView.at<double>(1,3) ,
@@ -298,8 +337,12 @@ void MyGLWidget::paintGL()
             attrVertices = 0;
             attrVertices = shaderProgram.attributeLocation("vert");  // #version 130
 
+            int attrTexCoords = 3 ;
+            attrTexCoords = shaderProgram.attributeLocation("texCoord"); // #version 130
+
             // Aktiviere die Verwendung der Attribute-Arrays
             shaderProgram.enableAttributeArray(attrVertices);
+            shaderProgram.enableAttributeArray(attrTexCoords);
 
             // Lokalisiere bzw. definierte die Schnittstelle für die Transformationsmatrix
             // Die Matrix kann direkt übergeben werden, da setUniformValue für diesen Typ überladen ist.
@@ -312,10 +355,15 @@ void MyGLWidget::paintGL()
 
             shaderProgram.setUniformValue(unifMatrix,modelViewProjectionMatrix);
 
+            texMarker1->bind();
+            shaderProgram.setUniformValue("texture",0);
+
             // Fülle die Attribute-Buffer mit den konkreten Daten
             int offset = 0 ;
-            int stride = 4 * sizeof(GLfloat) ;
+            int stride = 8 * sizeof(GLfloat) ;
             shaderProgram.setAttributeBuffer(attrVertices,GL_FLOAT,offset,4,stride);
+            offset += 4*sizeof(GLfloat);
+            shaderProgram.setAttributeBuffer(attrTexCoords,GL_FLOAT,offset,4,stride);
 
             glDrawElements ( GL_TRIANGLES,                      // Primitive
                              iboLength[1],                         // Wieviele Indizies
@@ -323,9 +371,11 @@ void MyGLWidget::paintGL()
                              0);                                // 0 = Nehme den Index Buffer
             // Deaktiviere die Verwendung der Attribute Arrays
             shaderProgram.disableAttributeArray(attrVertices);
+            shaderProgram.disableAttributeArray(attrTexCoords);
 
             vboMarker1.release();
             iboMarker1.release();
+            texMarker1->release();
 
         } // if ( marker1Detected && drawAR && projectionCalculated )
 
@@ -352,8 +402,12 @@ void MyGLWidget::paintGL()
             attrVertices = 0;
             attrVertices = shaderProgram.attributeLocation("vert");  // #version 130
 
+            int attrTexCoords = 3 ;
+            attrTexCoords = shaderProgram.attributeLocation("texCoord"); // #version 130
+
             // Aktiviere die Verwendung der Attribute-Arrays
             shaderProgram.enableAttributeArray(attrVertices);
+            shaderProgram.enableAttributeArray(attrTexCoords);
 
             // Lokalisiere bzw. definierte die Schnittstelle für die Transformationsmatrix
             // Die Matrix kann direkt übergeben werden, da setUniformValue für diesen Typ überladen ist.
@@ -361,25 +415,32 @@ void MyGLWidget::paintGL()
             unifMatrix = shaderProgram.uniformLocation("matrix");
             modelViewProjectionMatrix = modelViewProjectionMatrix * modelViewMatrix ;
 
-            vboMarker1.bind();
-            iboMarker1.bind();
+            vboMarker2.bind();
+            iboMarker2.bind();
 
             shaderProgram.setUniformValue(unifMatrix,modelViewProjectionMatrix);
 
+            texMarker2->bind();
+            shaderProgram.setUniformValue("texture",0);
+
             // Fülle die Attribute-Buffer mit den konkreten Daten
             int offset = 0 ;
-            int stride = 4 * sizeof(GLfloat) ;
+            int stride = 8 * sizeof(GLfloat) ;
             shaderProgram.setAttributeBuffer(attrVertices,GL_FLOAT,offset,4,stride);
+            offset += 4*sizeof(GLfloat);
+            shaderProgram.setAttributeBuffer(attrTexCoords,GL_FLOAT,offset,4,stride);
 
             glDrawElements ( GL_TRIANGLES,                      // Primitive
-                             iboLength[1],                         // Wieviele Indizies
+                             iboLength[2],                         // Wieviele Indizies
                              GL_UNSIGNED_INT,                   // Datentyp
                              0);                                // 0 = Nehme den Index Buffer
             // Deaktiviere die Verwendung der Attribute Arrays
             shaderProgram.disableAttributeArray(attrVertices);
+            shaderProgram.disableAttributeArray(attrTexCoords);
 
-            vboMarker1.release();
-            iboMarker1.release();
+            vboMarker2.release();
+            iboMarker2.release();
+            texMarker2->release();
 
         } // if ( marker2Detected && drawAR && projectionCalculated )
 

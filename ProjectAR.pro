@@ -59,6 +59,7 @@ LIBS += -LC:\\opencvbin\\bin \
     libopencv_videostab310
 
 RESOURCES += \
-    shader.qrc
+    shader.qrc \
+    textures.qrc
 
 
