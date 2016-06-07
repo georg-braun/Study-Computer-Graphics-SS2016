@@ -51,6 +51,10 @@ bool Detector::readCameraParameters(std::string filename) {
 void Detector::processFrameAndUpdateGUI() {
 
     bool drawAR = false ; // Erst mal davon ausgehen, dass kein Marker gefunden wurde
+    marker0Detected = false ;
+    marker1Detected = false ;
+    marker2Detected = false ;
+
 
     bool blnFrameReadSuccessfully = capWebcam.read(imageOriginal);                    // get next frame from the webcam
 
@@ -67,13 +71,31 @@ void Detector::processFrameAndUpdateGUI() {
 
     if ( ids.size() > 0 ) {
         cv::aruco::estimatePoseSingleMarkers(corners, 0.055f, cameraMatrix, distCoeffs, rvecs, tvecs) ;
-        calcModelViewMatrixFirstId();
+
+        for (unsigned int i=0 ; i < ids.size() ; i++) {
+            if ( ids.at(i) == 2 ) {
+                marker0Detected = true ;
+                marker0ArrayPos = i ;
+            }
+            if ( ids.at(i) == 3 ) {
+                marker1Detected = true ;
+                marker1ArrayPos = i ;
+            }
+            if ( ids.at(i) == 4 ) {
+                marker2Detected = true ;
+                marker2ArrayPos = i ;
+            }
+        }
+
+        // Berechnungen der ModelView Matritzen
+        calcModelViewMatrices();
+        // Es wurden Marker gefunden, also darf OpenGL später auch loslegen ;)
         drawAR = true ;
     }
 
 
+    // Einzeichnen der Koordinatensystem auf den Markern
     imageOriginal.copyTo(imageCopy);
-
     if ( ids.size() > 0 ) {     // Wurden Marker erkannt?
         cv::aruco::drawDetectedMarkers(imageCopy,corners,ids) ;
 
@@ -82,6 +104,7 @@ void Detector::processFrameAndUpdateGUI() {
         }
 
     }
+
 
 
     // Weitergabe
@@ -96,15 +119,23 @@ void Detector::processFrameAndUpdateGUI() {
     // Daten an das AR-Datenmodul weiterreichen
     arDataPtr->mutex.lock();
 
-    // Transponieren entfernt, da in QMatrix gespeichert wird und diese dann für OpenGL transponiert.
-    //cv::Mat(para.t()).copyTo( arDataPtr->modelView_matrix ); // transpose to col-major for OpenGL
-    para.copyTo( arDataPtr->modelView_matrix ); // transpose to col-major for OpenGL
+
+    marker0ModelView.copyTo( arDataPtr->marker0modelView_matrix );
+    marker1ModelView.copyTo( arDataPtr->marker1modelView_matrix );
+    marker2ModelView.copyTo( arDataPtr->marker2modelView_matrix );
+
+    arDataPtr->marker0Detected = marker0Detected ;
+    arDataPtr->marker1Detected = marker1Detected ;
+    arDataPtr->marker2Detected = marker2Detected ;
 
     arDataPtr->tex = mRenderQtImg;
     arDataPtr->drawAR = drawAR ;  // Marker wurde gefunden, also was AR Zeug machen ;)
     // OpenGL Widget sagen, dass es nun ein Bild gibt und es anfangen kann dieses zu "zeichnen"
     arDataPtr->detectorInitialized = true ;
+
+
     arDataPtr->mutex.unlock();
+
 
     lblOriginal->setPixmap(QPixmap::fromImage(qimgCoord));
     //ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgOriginal));           // show images on form labels
@@ -133,18 +164,8 @@ bool Detector::initializeDetection() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Detector::calcModelViewMatrixFirstId() {
+void Detector::calcModelViewMatrices() {
 
-    cv::Mat Rvec (rvecs[0],CV_32F) ;
-    cv::Mat Tvec (tvecs[0],CV_32F) ;
-
-    cv::Mat Rot(3,3,CV_32FC1);
-    cv::Rodrigues(Rvec,Rot);
-
-    // [R | t] matrix
-    para = cv::Mat_<double>::eye(4,4);
-    Rot.convertTo(para(cv::Rect(0,0,3,3)),CV_64F);
-    Tvec.copyTo(para(cv::Rect(3,0,1,3)));
 
     cv::Mat cvToGl = cv::Mat::zeros(4, 4, CV_64F);
     cvToGl.at<double>(0, 0) = 1.0f;
@@ -152,7 +173,52 @@ void Detector::calcModelViewMatrixFirstId() {
     cvToGl.at<double>(2, 2) = -1.0f; // invert the z axis
     cvToGl.at<double>(3, 3) = 1.0f;
 
-    para = cvToGl * para;
+
+    if ( marker0Detected ) {
+        cv::Mat marker0Rvec (rvecs[marker0ArrayPos],CV_32F) ;
+        cv::Mat marker0Tvec (tvecs[marker0ArrayPos],CV_32F) ;
+
+        cv::Mat Rot(3,3,CV_32FC1);
+        cv::Rodrigues(marker0Rvec,Rot);
+
+        // [R | t] matrix
+        marker0ModelView = cv::Mat_<double>::eye(4,4);
+        Rot.convertTo(marker0ModelView(cv::Rect(0,0,3,3)),CV_64F);
+        marker0Tvec.copyTo(marker0ModelView(cv::Rect(3,0,1,3)));
+
+        marker0ModelView = cvToGl * marker0ModelView;
+    }
+
+    if ( marker1Detected ) {
+        cv::Mat marker1Rvec (rvecs[marker1ArrayPos],CV_32F) ;
+        cv::Mat marker1Tvec (tvecs[marker1ArrayPos],CV_32F) ;
+
+        cv::Mat Rot(3,3,CV_32FC1);
+        cv::Rodrigues(marker1Rvec,Rot);
+
+        // [R | t] matrix
+        marker1ModelView = cv::Mat_<double>::eye(4,4);
+        Rot.convertTo(marker1ModelView(cv::Rect(0,0,3,3)),CV_64F);
+        marker1Tvec.copyTo(marker1ModelView(cv::Rect(3,0,1,3)));
+
+        marker1ModelView = cvToGl * marker1ModelView;
+    }
+
+    if ( marker2Detected ) {
+        cv::Mat marker2Rvec (rvecs[marker2ArrayPos],CV_32F) ;
+        cv::Mat marker2Tvec (tvecs[marker2ArrayPos],CV_32F) ;
+
+        cv::Mat Rot(3,3,CV_32FC1);
+        cv::Rodrigues(marker2Rvec,Rot);
+
+        // [R | t] matrix
+        marker2ModelView = cv::Mat_<double>::eye(4,4);
+        Rot.convertTo(marker2ModelView(cv::Rect(0,0,3,3)),CV_64F);
+        marker2Tvec.copyTo(marker2ModelView(cv::Rect(3,0,1,3)));
+
+        marker2ModelView = cvToGl * marker2ModelView;
+    }
+
 
 }
 

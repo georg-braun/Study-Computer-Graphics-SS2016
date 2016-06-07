@@ -32,6 +32,13 @@ private:
     QImage convertOpenCVMatToQtQImage(cv::Mat mat);       // function prototype
     cv::Ptr<cv::aruco::Dictionary> dictionary ;
 
+    bool marker0Detected ;
+    bool marker1Detected ;
+    bool marker2Detected ;
+    int  marker0ArrayPos ;
+    int  marker1ArrayPos ;
+    int  marker2ArrayPos ;
+
 
     // Infos
     std::vector< int > ids;
@@ -48,8 +55,7 @@ private:
     bool readCameraParameters(std::string filename) ;
     bool initializeDetection();
 
-    cv::Mat modelViewFirstId ;
-    void calcModelViewMatrixFirstId();
+    void calcModelViewMatrices();
     void exitProgram();                    // function prototype
 
     QImage      mRenderQtImg;           /// Qt image to be rendered
@@ -68,7 +74,9 @@ public:
     ArData * arDataPtr ;
     QLabel * lblOriginal ;
 
-    cv::Mat_<double> para ;
+    cv::Mat_<double> marker0ModelView ;
+    cv::Mat_<double> marker1ModelView ;
+    cv::Mat_<double> marker2ModelView ;
 
 };
 

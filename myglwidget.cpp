@@ -11,8 +11,12 @@ MyGLWidget::MyGLWidget()
 
 MyGLWidget::MyGLWidget(QWidget *parent)
     : QGLWidget(parent)
-    , vbo(QOpenGLBuffer::VertexBuffer)
-    , ibo(QOpenGLBuffer::IndexBuffer)
+    , vboMarker0(QOpenGLBuffer::VertexBuffer)
+    , iboMarker0(QOpenGLBuffer::IndexBuffer)
+    , vboMarker1(QOpenGLBuffer::VertexBuffer)
+    , iboMarker1(QOpenGLBuffer::IndexBuffer)
+    , vboMarker2(QOpenGLBuffer::VertexBuffer)
+    , iboMarker2(QOpenGLBuffer::IndexBuffer)
 {
 
     connect(&timer, SIGNAL(timeout()),this,SLOT(updateGL()));
@@ -25,7 +29,13 @@ void MyGLWidget::fetchArData() {
 
     arDataPtr->mutex.lock();
     cameraMatrix = arDataPtr->cameraMatrix ;
-    modelView_matrix = arDataPtr->modelView_matrix ;
+    marker0ModelView = arDataPtr->marker0modelView_matrix ;
+    marker1ModelView = arDataPtr->marker1modelView_matrix ;
+    marker2ModelView = arDataPtr->marker2modelView_matrix ;
+
+    marker0Detected = arDataPtr->marker0Detected ;
+    marker1Detected = arDataPtr->marker1Detected ;
+    marker2Detected = arDataPtr->marker2Detected ;
     drawAR = arDataPtr->drawAR ;
     tex = arDataPtr->tex ;
     detectorInitialized =  arDataPtr->detectorInitialized ;
@@ -36,24 +46,48 @@ void MyGLWidget::fetchArData() {
 
 void MyGLWidget::loadModel()
 {
-    // Lade Model aus Datei:
-      ModelLoader model ;
-      bool res = model.loadObjectFromFile("Models/baby.obj");
+      // Lade die Modelle aus den Dateien in Datenstrukturen
+      ModelLoader * model ;
+      model = new ModelLoader() ;
+
+      // Frosch
+      bool res = model->loadObjectFromFile("Models/baby.obj");
       // Wenn erfolgreich, generiere VBO und Index-Array
       if (res) {
           // Frage zu erwartende Array-Längen ab
-          vboLength = model.lengthOfSimpleVBO();
-          iboLength = model.lengthOfIndexArray();
+          vboLength[0] = model->lengthOfSimpleVBO();
+          iboLength[0] = model->lengthOfIndexArray();
           // Generiere VBO und Index-Array
-          vboData = new GLfloat[vboLength];
-          indexData = new GLuint[iboLength];
-          model.genSimpleVBO(vboData);
-          model.genIndexArray(indexData);
+          vboData[0] = new GLfloat[vboLength[0]];
+          indexData[0] = new GLuint[iboLength[0]];
+          model->genSimpleVBO(vboData[0]);
+          model->genIndexArray(indexData[0]);
       }
       else {
           // Modell konnte nicht geladen werden
           assert(0) ;
       }
+      delete model ;
+
+      // Planet
+      model = new ModelLoader() ;
+      res = model->loadObjectFromFile("Models/PORIGON_float.obj");
+      // Wenn erfolgreich, generiere VBO und Index-Array
+      if (res) {
+          // Frage zu erwartende Array-Längen ab
+          vboLength[1] = model->lengthOfSimpleVBO();
+          iboLength[1] = model->lengthOfIndexArray();
+          // Generiere VBO und Index-Array
+          vboData[1] = new GLfloat[vboLength[1]];
+          indexData[1] = new GLuint[iboLength[1]];
+          model->genSimpleVBO(vboData[1]);
+          model->genIndexArray(indexData[1]);
+      }
+      else {
+          // Modell konnte nicht geladen werden
+          assert(0) ;
+      }
+      delete model ;
 }
 
 
@@ -128,14 +162,7 @@ void MyGLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-
-
-
-
-
-
-
-
+    // Aktuelle Daten von "OpenCV" holen
     fetchArData();
 
     if ( detectorInitialized ) {
@@ -174,20 +201,36 @@ void MyGLWidget::paintGL()
         glDisable(GL_TEXTURE_2D);
 
 
+        // Binde das Shader-Programm an den OpenGL-Kontext
+        shaderProgram.bind();
 
-        // Vllt Fehler wenn nil zugriff!! Deshalb Status Variablen
-        if ( drawAR && projectionCalculated ) {
+        if ( drawAR ) {
+           /*
+            // Lokalisiere bzw. definiere die Schnittstelle für die Eckpunkte
+            attrVertices = 0;
+            attrVertices = shaderProgram.attributeLocation("vert");  // #version 130
 
+            // Aktiviere die Verwendung der Attribute-Arrays
+            shaderProgram.enableAttributeArray(attrVertices);
+
+            // Lokalisiere bzw. definierte die Schnittstelle für die Transformationsmatrix
+            // Die Matrix kann direkt übergeben werden, da setUniformValue für diesen Typ überladen ist.
+            unifMatrix = 0 ;
+            unifMatrix = shaderProgram.uniformLocation("matrix");
+            */
+        }
+
+        // --- Marker 0 ---
+        if ( marker0Detected && drawAR && projectionCalculated ) {
 
                 // MODELVIEW TRANSFORMATION (Neues OpenGL)
-                QMatrix4x4 modelViewMatrix = QMatrix4x4(  modelView_matrix.at<double>(0,0) , modelView_matrix.at<double>(0,1) , modelView_matrix.at<double>(0,2) , modelView_matrix.at<double>(0,3) ,
-                                                          modelView_matrix.at<double>(1,0) , modelView_matrix.at<double>(1,1) , modelView_matrix.at<double>(1,2) , modelView_matrix.at<double>(1,3) ,
-                                                          modelView_matrix.at<double>(2,0) , modelView_matrix.at<double>(2,1) , modelView_matrix.at<double>(2,2) , modelView_matrix.at<double>(2,3) ,
-                                                          modelView_matrix.at<double>(3,0) , modelView_matrix.at<double>(3,1) , modelView_matrix.at<double>(3,2) , modelView_matrix.at<double>(3,3)
+                QMatrix4x4 modelViewMatrix = QMatrix4x4(  marker0ModelView.at<double>(0,0) , marker0ModelView.at<double>(0,1) , marker0ModelView.at<double>(0,2) , marker0ModelView.at<double>(0,3) ,
+                                                          marker0ModelView.at<double>(1,0) , marker0ModelView.at<double>(1,1) , marker0ModelView.at<double>(1,2) , marker0ModelView.at<double>(1,3) ,
+                                                          marker0ModelView.at<double>(2,0) , marker0ModelView.at<double>(2,1) , marker0ModelView.at<double>(2,2) , marker0ModelView.at<double>(2,3) ,
+                                                          marker0ModelView.at<double>(3,0) , marker0ModelView.at<double>(3,1) , marker0ModelView.at<double>(3,2) , marker0ModelView.at<double>(3,3)
                                                           );
                 modelViewMatrix.rotate(90,1,0,0);
                 modelViewMatrix.scale(0.005f);
-
 
                 QMatrix4x4 modelViewProjectionMatrix  = QMatrix4x4(  persp.at<double>(0,0) , persp.at<double>(0,1) , persp.at<double>(0,2) , persp.at<double>(0,3) ,
                                                                      persp.at<double>(1,0) , persp.at<double>(1,1) , persp.at<double>(1,2) , persp.at<double>(1,3) ,
@@ -195,59 +238,156 @@ void MyGLWidget::paintGL()
                                                                      persp.at<double>(3,0) , persp.at<double>(3,1) , persp.at<double>(3,2) , persp.at<double>(3,3)
                                                                      );
 
-                modelViewProjectionMatrix = modelViewProjectionMatrix * modelViewMatrix ;
-
-
-                // Binde das Shader-Programm an den OpenGL-Kontext
-                shaderProgram.bind();
-                vbo.bind();
-                ibo.bind();
-
                 // Lokalisiere bzw. definiere die Schnittstelle für die Eckpunkte
-                int attrVertices = 0;
+                attrVertices = 0;
                 attrVertices = shaderProgram.attributeLocation("vert");  // #version 130
-
-                // Lokalisiere bzw. definiere die Schnittstelle für die Farben
-                //int attrColors = 1;
-                //attrColors = shaderProgram.attributeLocation("color");  // #version 130
 
                 // Aktiviere die Verwendung der Attribute-Arrays
                 shaderProgram.enableAttributeArray(attrVertices);
-                //shaderProgram.enableAttributeArray(attrColors);
 
                 // Lokalisiere bzw. definierte die Schnittstelle für die Transformationsmatrix
                 // Die Matrix kann direkt übergeben werden, da setUniformValue für diesen Typ überladen ist.
-                int unifMatrix = 0 ;
+                unifMatrix = 0 ;
                 unifMatrix = shaderProgram.uniformLocation("matrix");
-                Q_ASSERT(unifMatrix >= 0) ;
+                modelViewProjectionMatrix = modelViewProjectionMatrix * modelViewMatrix ;
+
+                vboMarker0.bind();
+                iboMarker0.bind();
+
                 shaderProgram.setUniformValue(unifMatrix,modelViewProjectionMatrix);
+
 
                 // Fülle die Attribute-Buffer mit den konkreten Daten
                 int offset = 0 ;
-                //int stride = 8 * sizeof(GLfloat) ;
                 int stride = 4 * sizeof(GLfloat) ;
                 shaderProgram.setAttributeBuffer(attrVertices,GL_FLOAT,offset,4,stride);
-                //offset += 4 * sizeof(GLfloat);
-                //shaderProgram.setAttributeBuffer(attrColors,GL_FLOAT,offset,4,stride);
 
                 glDrawElements ( GL_TRIANGLES,                      // Primitive
-                                 iboLength,                         // Wieviele Indizies
+                                 iboLength[0],                         // Wieviele Indizies
                                  GL_UNSIGNED_INT,                   // Datentyp
                                  0);                                // 0 = Nehme den Index Buffer
                 // Deaktiviere die Verwendung der Attribute Arrays
                 shaderProgram.disableAttributeArray(attrVertices);
-                //shaderProgram.disableAttributeArray(attrColors);
+
+                vboMarker0.release();
+                iboMarker0.release();
 
 
-                vbo.release();
-                ibo.release();
-                shaderProgram.release();
+        } // if ( marker0Detected && drawAR && projectionCalculated )
 
-            drawAR = false ;
-        }
 
-    } // if detectorInitialized
+        // --- Marker 1 ---
+        if ( marker1Detected && drawAR && projectionCalculated ) {
+            qDebug() << marker1Detected ;
+            // MODELVIEW TRANSFORMATION (Neues OpenGL)
+            QMatrix4x4 modelViewMatrix = QMatrix4x4(  marker1ModelView.at<double>(0,0) , marker1ModelView.at<double>(0,1) , marker1ModelView.at<double>(0,2) , marker1ModelView.at<double>(0,3) ,
+                                                      marker1ModelView.at<double>(1,0) , marker1ModelView.at<double>(1,1) , marker1ModelView.at<double>(1,2) , marker1ModelView.at<double>(1,3) ,
+                                                      marker1ModelView.at<double>(2,0) , marker1ModelView.at<double>(2,1) , marker1ModelView.at<double>(2,2) , marker1ModelView.at<double>(2,3) ,
+                                                      marker1ModelView.at<double>(3,0) , marker1ModelView.at<double>(3,1) , marker1ModelView.at<double>(3,2) , marker1ModelView.at<double>(3,3)
+                                                      );
+            modelViewMatrix.rotate(90,1,0,0);
+            modelViewMatrix.scale(0.1f);
 
+            QMatrix4x4 modelViewProjectionMatrix  = QMatrix4x4(  persp.at<double>(0,0) , persp.at<double>(0,1) , persp.at<double>(0,2) , persp.at<double>(0,3) ,
+                                                                 persp.at<double>(1,0) , persp.at<double>(1,1) , persp.at<double>(1,2) , persp.at<double>(1,3) ,
+                                                                 persp.at<double>(2,0) , persp.at<double>(2,1) , persp.at<double>(2,2) , persp.at<double>(2,3) ,
+                                                                 persp.at<double>(3,0) , persp.at<double>(3,1) , persp.at<double>(3,2) , persp.at<double>(3,3)
+                                                                 );
+
+            // Lokalisiere bzw. definiere die Schnittstelle für die Eckpunkte
+            attrVertices = 0;
+            attrVertices = shaderProgram.attributeLocation("vert");  // #version 130
+
+            // Aktiviere die Verwendung der Attribute-Arrays
+            shaderProgram.enableAttributeArray(attrVertices);
+
+            // Lokalisiere bzw. definierte die Schnittstelle für die Transformationsmatrix
+            // Die Matrix kann direkt übergeben werden, da setUniformValue für diesen Typ überladen ist.
+            unifMatrix = 0 ;
+            unifMatrix = shaderProgram.uniformLocation("matrix");
+            modelViewProjectionMatrix = modelViewProjectionMatrix * modelViewMatrix ;
+
+            vboMarker1.bind();
+            iboMarker1.bind();
+
+            shaderProgram.setUniformValue(unifMatrix,modelViewProjectionMatrix);
+
+            // Fülle die Attribute-Buffer mit den konkreten Daten
+            int offset = 0 ;
+            int stride = 4 * sizeof(GLfloat) ;
+            shaderProgram.setAttributeBuffer(attrVertices,GL_FLOAT,offset,4,stride);
+
+            glDrawElements ( GL_TRIANGLES,                      // Primitive
+                             iboLength[1],                         // Wieviele Indizies
+                             GL_UNSIGNED_INT,                   // Datentyp
+                             0);                                // 0 = Nehme den Index Buffer
+            // Deaktiviere die Verwendung der Attribute Arrays
+            shaderProgram.disableAttributeArray(attrVertices);
+
+            vboMarker1.release();
+            iboMarker1.release();
+
+        } // if ( marker1Detected && drawAR && projectionCalculated )
+
+
+        // --- Marker 2 ---
+        if ( marker2Detected && drawAR && projectionCalculated ) {
+            qDebug() << marker1Detected ;
+            // MODELVIEW TRANSFORMATION (Neues OpenGL)
+            QMatrix4x4 modelViewMatrix = QMatrix4x4(  marker2ModelView.at<double>(0,0) , marker2ModelView.at<double>(0,1) , marker2ModelView.at<double>(0,2) , marker2ModelView.at<double>(0,3) ,
+                                                      marker2ModelView.at<double>(1,0) , marker2ModelView.at<double>(1,1) , marker2ModelView.at<double>(1,2) , marker2ModelView.at<double>(1,3) ,
+                                                      marker2ModelView.at<double>(2,0) , marker2ModelView.at<double>(2,1) , marker2ModelView.at<double>(2,2) , marker2ModelView.at<double>(2,3) ,
+                                                      marker2ModelView.at<double>(3,0) , marker2ModelView.at<double>(3,1) , marker2ModelView.at<double>(3,2) , marker2ModelView.at<double>(3,3)
+                                                      );
+            modelViewMatrix.rotate(90,1,0,0);
+            modelViewMatrix.scale(0.1f);
+
+            QMatrix4x4 modelViewProjectionMatrix  = QMatrix4x4(  persp.at<double>(0,0) , persp.at<double>(0,1) , persp.at<double>(0,2) , persp.at<double>(0,3) ,
+                                                                 persp.at<double>(1,0) , persp.at<double>(1,1) , persp.at<double>(1,2) , persp.at<double>(1,3) ,
+                                                                 persp.at<double>(2,0) , persp.at<double>(2,1) , persp.at<double>(2,2) , persp.at<double>(2,3) ,
+                                                                 persp.at<double>(3,0) , persp.at<double>(3,1) , persp.at<double>(3,2) , persp.at<double>(3,3)
+                                                                 );
+
+            // Lokalisiere bzw. definiere die Schnittstelle für die Eckpunkte
+            attrVertices = 0;
+            attrVertices = shaderProgram.attributeLocation("vert");  // #version 130
+
+            // Aktiviere die Verwendung der Attribute-Arrays
+            shaderProgram.enableAttributeArray(attrVertices);
+
+            // Lokalisiere bzw. definierte die Schnittstelle für die Transformationsmatrix
+            // Die Matrix kann direkt übergeben werden, da setUniformValue für diesen Typ überladen ist.
+            unifMatrix = 0 ;
+            unifMatrix = shaderProgram.uniformLocation("matrix");
+            modelViewProjectionMatrix = modelViewProjectionMatrix * modelViewMatrix ;
+
+            vboMarker1.bind();
+            iboMarker1.bind();
+
+            shaderProgram.setUniformValue(unifMatrix,modelViewProjectionMatrix);
+
+            // Fülle die Attribute-Buffer mit den konkreten Daten
+            int offset = 0 ;
+            int stride = 4 * sizeof(GLfloat) ;
+            shaderProgram.setAttributeBuffer(attrVertices,GL_FLOAT,offset,4,stride);
+
+            glDrawElements ( GL_TRIANGLES,                      // Primitive
+                             iboLength[1],                         // Wieviele Indizies
+                             GL_UNSIGNED_INT,                   // Datentyp
+                             0);                                // 0 = Nehme den Index Buffer
+            // Deaktiviere die Verwendung der Attribute Arrays
+            shaderProgram.disableAttributeArray(attrVertices);
+
+            vboMarker1.release();
+            iboMarker1.release();
+
+        } // if ( marker2Detected && drawAR && projectionCalculated )
+
+
+
+    } // detectorInitialized
+
+    shaderProgram.release();
 
 }
 
@@ -347,22 +487,37 @@ void MyGLWidget::addVertice(int     verticeNo ,
 void MyGLWidget::initalizeBuffer()
 {
     // Erzeuge vbo
-    vbo.create();
-    vbo.bind();
-    vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-//    vbo.allocate( vertices,                                 // Vertex-Array
-//                  sizeof(GLfloat) * 8 * verticesCount );    // Speicherbedarf pro Vertex
-    vbo.allocate(vboData,sizeof(GLfloat) * vboLength);
-    vbo.release();
+    vboMarker0.create();
+    vboMarker0.bind();
+    vboMarker0.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vboMarker0.allocate(vboData[0],sizeof(GLfloat) * vboLength[0]);
+    vboMarker0.release();
+    //vboArray[0] = vbo ; // VBO in das Array kopieren
 
     // Erzeuge Index-Buffer
-    ibo.create();
-    ibo.bind();
-    ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-//    ibo.allocate( indicies,                                 // Index-Array
-//                  sizeof(GLubyte) * 24 );                   // Speicherbedarf Indizies
-    ibo.allocate(indexData,sizeof(GLuint) * iboLength);
-    ibo.release();
+    iboMarker0.create();
+    iboMarker0.bind();
+    iboMarker0.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    iboMarker0.allocate(indexData[0],sizeof(GLuint) * iboLength[0]);
+    iboMarker0.release();
+    //iboArray[0] = vbo ;
+
+
+    // Erzeuge vbo
+    vboMarker1.create();
+    vboMarker1.bind();
+    vboMarker1.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vboMarker1.allocate(vboData[1],sizeof(GLfloat) * vboLength[1]);
+    vboMarker1.release();
+    //vboArray[1] = vbo ; // VBO in das Array kopieren
+
+    // Erzeuge Index-Buffer
+    iboMarker1.create();
+    iboMarker1.bind();
+    iboMarker1.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    iboMarker1.allocate(indexData[1],sizeof(GLuint) * iboLength[1]);
+    iboMarker1.release();
+    //iboArray[1] = vbo ;
 }
 
 //---------------------------------------------------------------------------------------------------------

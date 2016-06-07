@@ -42,7 +42,12 @@ protected:
     // Fetched Data from ArData Class
     cv::Mat cameraMatrix;
     QImage  tex;
-    cv::Mat modelView_matrix ;
+    cv::Mat marker0ModelView ;
+    cv::Mat marker1ModelView ;
+    cv::Mat marker2ModelView ;
+    bool marker0Detected = false ;
+    bool marker1Detected = false ;
+    bool marker2Detected = false ;
     bool    drawAr = false ;
     bool    detectorInitialized = false ;
     bool    projectionCalculated = false ;
@@ -53,17 +58,28 @@ protected:
     void fetchArData() ;
 
     // Buffer
-    QOpenGLBuffer vbo ;
-    QOpenGLBuffer ibo ;
+    QOpenGLBuffer vboMarker0 ;
+    QOpenGLBuffer iboMarker0 ;
+    QOpenGLBuffer vboMarker1 ;
+    QOpenGLBuffer iboMarker1 ;
+    QOpenGLBuffer vboMarker2 ;
+    QOpenGLBuffer iboMarker2 ;
+
+
+    int attrVertices = 0;
+    int unifMatrix = 0 ;
+
+    //QOpenGLBuffer vboArray[5] ;
+    //QOpenGLBuffer iboArray[5] ;
 
     void loadModel() ;
 
  //-------------------------
     // Dynamisch
-    GLfloat* vboData ;
-    GLuint* indexData ;
-    unsigned int vboLength ;
-    unsigned int iboLength ;
+    GLfloat* vboData[5] ;
+    GLuint* indexData[5] ;
+    unsigned int vboLength[5] ;
+    unsigned int iboLength[5] ;
 
 
 
