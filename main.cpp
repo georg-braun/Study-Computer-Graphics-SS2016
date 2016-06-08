@@ -12,17 +12,11 @@ int main(int argc, char *argv[])
 
     w.startProgram();
 
+    // Calibration
     /*
-    //Calibrator myCvCalibrator ;
-    //myCvCalibrator.calibrateCamera();
-
-    Detector myCvDetector ;
-   // w.attachOriginalImageToLabel( myCvDetector . lblWebcamOriginal );
-   // w.attachDetectedImageToLabel( myCvDetector . lblWebcamDetected );
-
-    w.attachDetectorToGlImage(myCvDetector.tex);
-    myCvDetector.startDetection();
-*/
+    Calibrator myCvCalibrator ;
+    myCvCalibrator.calibrateCamera();
+    */
 
     return a.exec();
 }

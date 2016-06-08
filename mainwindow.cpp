@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "calibrator.h"
+#include "markergenerator.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -15,6 +16,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    myCvDetector.runDetection = false ; // Thread zum Stoppen bringen.
+    myCvDetector.wait(1000) ; // 1s Wartezeit, damit der Thread sich beenden kann.
+    myCvDetector.terminate();
     delete ui;
 }
 
@@ -26,10 +30,6 @@ void MainWindow::startProgram() {
     ui->widget->arDataPtr = &arData ;
     myCvDetector.lblOriginal = ui->lblOriginal ;
 
-
-   // w.attachOriginalImageToLabel( myCvDetector . lblWebcamOriginal );
-   // w.attachDetectedImageToLabel( myCvDetector . lblWebcamDetected );
-
     myCvDetector.startDetection();
     myCvDetector.start();
 
@@ -38,3 +38,16 @@ void MainWindow::startProgram() {
 
 }
 
+
+
+void MainWindow::on_btnCalibration_clicked()
+{
+    Calibrator myCvCalibrator ;
+    myCvCalibrator.calibrateCamera();
+}
+
+void MainWindow::on_btnGenerateMarker_clicked()
+{
+    MarkerGenerator generator ;
+    generator.createMarker();
+}

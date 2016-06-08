@@ -14,9 +14,37 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="1,8,1">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>OpenCV</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>OpenGL</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
@@ -36,30 +64,27 @@
          </widget>
         </item>
         <item>
-         <widget class="MyGLWidget" name="widget" native="true"/>
+         <widget class="MyGLWidget" name="widget" native="true">
+          <zorder>widget_2</zorder>
+         </widget>
         </item>
        </layout>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QLabel" name="lblThresh">
-          <property name="autoFillBackground">
-           <bool>true</bool>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::Box</enum>
-          </property>
+         <widget class="QPushButton" name="btnCalibration">
           <property name="text">
-           <string/>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <string>Calibration</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QWidget" name="widget_2" native="true"/>
+         <widget class="QPushButton" name="btnGenerateMarker">
+          <property name="text">
+           <string>Generate marker</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

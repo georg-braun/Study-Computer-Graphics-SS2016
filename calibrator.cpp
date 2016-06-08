@@ -25,10 +25,10 @@ void Calibrator::calibrateCamera() {
 
     // Start Calibration Loop: Paar Beispielbilder holen mit denen kalibriert wird
     // Wenn genug Bilder gesammelt sind, dann werden diese ausgewertet.
-    qCalibrationTimer = new QTimer();                          // instantiate timer
-    QObject::connect(qCalibrationTimer, SIGNAL(timeout()), this, SLOT(calibration()));     // associate timer to processFrameAndUpdateGUI
-    qCalibrationTimer->start(40);
-
+    //qCalibrationTimer = new QTimer();                          // instantiate timer
+    //QObject::connect(qCalibrationTimer, SIGNAL(timeout()), this, SLOT(calibration()));     // associate timer to processFrameAndUpdateGUI
+    //qCalibrationTimer->start(40);
+    calibration();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,6 +50,7 @@ void Calibrator::checkCalbrationImages() {
     }
 
     // calibrate camera
+
    repError = cv::aruco::calibrateCameraAruco(allCornersConcatenated, allIdsConcatenated,
                                               markerCounterPerFrame, board, imgSize, cameraMatrix,
                                               distCoeffs, rvecsCalib, tvecsCalib, calibrationFlags);
@@ -61,7 +62,6 @@ void Calibrator::checkCalbrationImages() {
        qDebug() << "Cannot save output file" << endl;
    }
 
-   qDebug() << "Rep Error: " << repError << endl;
    qDebug() << "Calibration saved to " << "CameraParams.txt" << endl;
 
 }
@@ -91,45 +91,48 @@ void Calibrator::initializeCalibration() {
 void Calibrator::calibration() {
     // Bilder sammeln, die dann für die Kalibration genutzt werden
 
-    int waitTime = 10 ;
+    while (allIds.size() < 2) {
 
-    bool blnFrameReadSuccessfully = capWebcam.read(imageOriginal);
-    if (!blnFrameReadSuccessfully || imageOriginal.empty()) {                            // if we did not get a frame
-        exitProgram();                                                              // and exit program
-        return;                                                                     //
-    }
-    else {
+        int waitTime = 10 ;
 
-        // detect markers
-        cv::aruco::detectMarkers(imageOriginal, dictionary, corners, ids, detectorParams, rejected);
+        bool blnFrameReadSuccessfully = capWebcam.read(imageOriginal);
+        if (!blnFrameReadSuccessfully || imageOriginal.empty()) {                            // if we did not get a frame
+            exitProgram();                                                              // and exit program
+            return;                                                                     //
+        }
+        else {
 
-        cv::aruco::refineDetectedMarkers(imageOriginal,board, corners, ids, rejected);
+            // detect markers
+            cv::aruco::detectMarkers(imageOriginal, dictionary, corners, ids, detectorParams, rejected);
 
-        // Draw results
-        imageOriginal.copyTo(imageCopy) ;
-        if(ids.size() > 0) cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
-        putText(imageCopy, "Press 'c' to add current frame. 'ESC' to finish and calibrate",
-                cv::Point(10, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0), 2);
+            cv::aruco::refineDetectedMarkers(imageOriginal,board, corners, ids, rejected);
 
-        // Bild anzeigen
-        cv::imshow("Calibration",imageCopy);
-        qDebug() << "IDs: " << ids.size() << "  AllIDs: " << allIds.size();
+            // Draw results
+            imageOriginal.copyTo(imageCopy) ;
+            if(ids.size() > 0) cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
+            putText(imageCopy, "Press 'c' to add current frame. 'ESC' to finish and calibrate",
+                    cv::Point(10, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0), 2);
 
-        // Auf Tastendruck ein Bild zur Kalibirerung auswählen
-        char key = (char)cv::waitKey(waitTime);
-        if(key == 'c' && ids.size() > 0) {
-            allCorners.push_back(corners);
-            allIds.push_back(ids);
-            imgSize = imageOriginal.size();
+            // Bild anzeigen
+            cv::imshow("Calibration",imageCopy);
+            qDebug() << "IDs: " << ids.size() << "  AllIDs: " << allIds.size();
+
+            // Auf Tastendruck ein Bild zur Kalibirerung auswählen
+            char key = (char)cv::waitKey(waitTime);
+            if(key == 'c' && ids.size() > 0) {
+                allCorners.push_back(corners);
+                allIds.push_back(ids);
+                imgSize = imageOriginal.size();
+            }
+
         }
 
-    }
 
-
-    if(allIds.size() >= 2) {
-        // Genug bilder gesammelt.
-        qCalibrationTimer->stop();
-        checkCalbrationImages();
+        if(allIds.size() >= 2) {
+            // Genug bilder gesammelt.
+    //        qCalibrationTimer->stop();
+            checkCalbrationImages();
+        }
     }
 
 

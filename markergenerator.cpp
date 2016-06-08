@@ -9,6 +9,7 @@ MarkerGenerator::MarkerGenerator()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void MarkerGenerator::createMarker() {
     // Marker erzeugen und abspeichern
+    dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50);
     cv::Mat matMarkerImg ;
     std::string name = "";
     std::string jpg = ".jpg";

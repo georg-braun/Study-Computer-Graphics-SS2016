@@ -32,6 +32,10 @@ public:
 
     void startProgram() ;
 
+
+private slots:
+    void on_btnCalibration_clicked();
+    void on_btnGenerateMarker_clicked();
 };
 
 #endif // MAINWINDOW_H
