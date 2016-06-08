@@ -72,8 +72,8 @@ void MyGLWidget::loadModel()
 
       // Planet
       model = new ModelLoader() ;
-      //res = model->loadObjectFromFile("Models/sphere_low.obj");
-      res = model->loadObjectFromFile("Models/sombrero.obj");
+      //res = model->loadObjectFromFile("Models/sombrero.obj");
+      res = model->loadObjectFromFile("Models/sphere_low.obj");
       // Wenn erfolgreich, generiere VBO und Index-Array
       if (res) {
           // Frage zu erwartende Array-Längen ab
@@ -84,6 +84,26 @@ void MyGLWidget::loadModel()
           indexData[1] = new GLuint[iboLength[1]];
           model->genVBO(vboData[1],0,false,true);
           model->genIndexArray(indexData[1]);
+      }
+      else {
+          // Modell konnte nicht geladen werden
+          assert(0) ;
+      }
+      delete model ;
+
+      // Sombrero
+      model = new ModelLoader() ;
+      res = model->loadObjectFromFile("Models/sombrero.obj");
+      // Wenn erfolgreich, generiere VBO und Index-Array
+      if (res) {
+          // Frage zu erwartende Array-Längen ab
+          vboLength[2] = model->lengthOfVBO(0,false,true);
+          iboLength[2] = model->lengthOfIndexArray();
+          // Generiere VBO und Index-Array
+          vboData[2] = new GLfloat[vboLength[1]];
+          indexData[2] = new GLuint[iboLength[1]];
+          model->genVBO(vboData[2],0,false,true);
+          model->genIndexArray(indexData[2]);
       }
       else {
           // Modell konnte nicht geladen werden
@@ -105,13 +125,12 @@ void MyGLWidget::initializeTextures() {
     texMarker0->setMagnificationFilter(QOpenGLTexture::Linear);
     //Q_ASSERT( texMarker0->textureId() == 0 ) ;
 
-    //texMarker1 = new QOpenGLTexture(QImage(":/mercurymap.jpg").mirrored()) ;
-    texMarker1 = new QOpenGLTexture(QImage(":/sombrero.jpg").mirrored()) ;
+    texMarker1 = new QOpenGLTexture(QImage(":/mercurymap.jpg").mirrored()) ;
     texMarker1->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
     texMarker1->setMagnificationFilter(QOpenGLTexture::Linear);
     //Q_ASSERT( texMarker0->textureId() == 0 ) ;
 
-    texMarker2 = new QOpenGLTexture(QImage(":/frog.jpg").mirrored()) ;
+    texMarker2 = new QOpenGLTexture(QImage(":/sombrero.jpg").mirrored()) ;
     texMarker2->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
     texMarker2->setMagnificationFilter(QOpenGLTexture::Linear);
     //Q_ASSERT( texMarker0->textureId() == 0 ) ;
@@ -578,6 +597,22 @@ void MyGLWidget::initalizeBuffer()
     iboMarker1.setUsagePattern(QOpenGLBuffer::StaticDraw);
     iboMarker1.allocate(indexData[1],sizeof(GLuint) * iboLength[1]);
     iboMarker1.release();
+    //iboArray[1] = vbo ;
+
+    // Erzeuge vbo
+    vboMarker2.create();
+    vboMarker2.bind();
+    vboMarker2.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vboMarker2.allocate(vboData[2],sizeof(GLfloat) * vboLength[2]);
+    vboMarker2.release();
+    //vboArray[1] = vbo ; // VBO in das Array kopieren
+
+    // Erzeuge Index-Buffer
+    iboMarker2.create();
+    iboMarker2.bind();
+    iboMarker2.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    iboMarker2.allocate(indexData[2],sizeof(GLuint) * iboLength[2]);
+    iboMarker2.release();
     //iboArray[1] = vbo ;
 }
 

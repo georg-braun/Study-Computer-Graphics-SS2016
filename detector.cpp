@@ -73,15 +73,15 @@ void Detector::processFrameAndUpdateGUI() {
         cv::aruco::estimatePoseSingleMarkers(corners, 0.055f, cameraMatrix, distCoeffs, rvecs, tvecs) ;
 
         for (unsigned int i=0 ; i < ids.size() ; i++) {
-            if ( ids.at(i) == 2 ) {
+            if ( ids.at(i) == 0 ) {
                 marker0Detected = true ;
                 marker0ArrayPos = i ;
             }
-            if ( ids.at(i) == 3 ) {
+            if ( ids.at(i) == 1 ) {
                 marker1Detected = true ;
                 marker1ArrayPos = i ;
             }
-            if ( ids.at(i) == 4 ) {
+            if ( ids.at(i) == 2 ) {
                 marker2Detected = true ;
                 marker2ArrayPos = i ;
             }
