@@ -44,6 +44,7 @@ void MainWindow::on_btnCalibration_clicked()
 {
     Calibrator myCvCalibrator ;
     myCvCalibrator.calibrateCamera();
+    QApplication::quit();
 }
 
 void MainWindow::on_btnGenerateMarker_clicked()

@@ -35,9 +35,13 @@ private:
     bool marker0Detected ;
     bool marker1Detected ;
     bool marker2Detected ;
+    bool marker3Detected ;
+    bool marker4Detected ;
     int  marker0ArrayPos ;
     int  marker1ArrayPos ;
     int  marker2ArrayPos ;
+    int  marker3ArrayPos ;
+    int  marker4ArrayPos ;
 
 
     // Infos
@@ -77,6 +81,8 @@ public:
     cv::Mat_<double> marker0ModelView ;
     cv::Mat_<double> marker1ModelView ;
     cv::Mat_<double> marker2ModelView ;
+    cv::Mat_<double> marker3ModelView ;
+    cv::Mat_<double> marker4ModelView ;
 
 };
 

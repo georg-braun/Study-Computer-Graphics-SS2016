@@ -54,6 +54,8 @@ void Detector::processFrameAndUpdateGUI() {
     marker0Detected = false ;
     marker1Detected = false ;
     marker2Detected = false ;
+    marker3Detected = false ;
+    marker4Detected = false ;
 
 
     bool blnFrameReadSuccessfully = capWebcam.read(imageOriginal);                    // get next frame from the webcam
@@ -84,6 +86,14 @@ void Detector::processFrameAndUpdateGUI() {
             if ( ids.at(i) == 2 ) {
                 marker2Detected = true ;
                 marker2ArrayPos = i ;
+            }
+            if ( ids.at(i) == 3 ) {
+                marker3Detected = true ;
+                marker3ArrayPos = i ;
+            }
+            if ( ids.at(i) == 4 ) {
+                marker4Detected = true ;
+                marker4ArrayPos = i ;
             }
         }
 
@@ -123,10 +133,14 @@ void Detector::processFrameAndUpdateGUI() {
     marker0ModelView.copyTo( arDataPtr->marker0modelView_matrix );
     marker1ModelView.copyTo( arDataPtr->marker1modelView_matrix );
     marker2ModelView.copyTo( arDataPtr->marker2modelView_matrix );
+    marker3ModelView.copyTo( arDataPtr->marker3modelView_matrix );
+    marker4ModelView.copyTo( arDataPtr->marker4modelView_matrix );
 
     arDataPtr->marker0Detected = marker0Detected ;
     arDataPtr->marker1Detected = marker1Detected ;
     arDataPtr->marker2Detected = marker2Detected ;
+    arDataPtr->marker3Detected = marker3Detected ;
+    arDataPtr->marker4Detected = marker4Detected ;
 
     arDataPtr->tex = mRenderQtImg;
     arDataPtr->drawAR = drawAR ;  // Marker wurde gefunden, also was AR Zeug machen ;)
@@ -219,6 +233,35 @@ void Detector::calcModelViewMatrices() {
         marker2ModelView = cvToGl * marker2ModelView;
     }
 
+    if ( marker3Detected ) {
+        cv::Mat marker3Rvec (rvecs[marker3ArrayPos],CV_32F) ;
+        cv::Mat marker3Tvec (tvecs[marker3ArrayPos],CV_32F) ;
+
+        cv::Mat Rot(3,3,CV_32FC1);
+        cv::Rodrigues(marker3Rvec,Rot);
+
+        // [R | t] matrix
+        marker3ModelView = cv::Mat_<double>::eye(4,4);
+        Rot.convertTo(marker3ModelView(cv::Rect(0,0,3,3)),CV_64F);
+        marker3Tvec.copyTo(marker3ModelView(cv::Rect(3,0,1,3)));
+
+        marker3ModelView = cvToGl * marker3ModelView;
+    }
+
+    if ( marker4Detected ) {
+        cv::Mat marker4Rvec (rvecs[marker4ArrayPos],CV_32F) ;
+        cv::Mat marker4Tvec (tvecs[marker4ArrayPos],CV_32F) ;
+
+        cv::Mat Rot(3,3,CV_32FC1);
+        cv::Rodrigues(marker4Rvec,Rot);
+
+        // [R | t] matrix
+        marker4ModelView = cv::Mat_<double>::eye(4,4);
+        Rot.convertTo(marker4ModelView(cv::Rect(0,0,3,3)),CV_64F);
+        marker4Tvec.copyTo(marker4ModelView(cv::Rect(3,0,1,3)));
+
+        marker4ModelView = cvToGl * marker4ModelView;
+    }
 
 }
 

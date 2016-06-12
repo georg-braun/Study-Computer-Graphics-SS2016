@@ -22,11 +22,6 @@
 
 #include"modelloader.h"
 
-typedef struct {
-    GLfloat x, y, z, h;
-    GLfloat r, g, b, t;
-} Vertex;
-static const int verticesCount = 8 ;
 
 class MyGLWidget : public QGLWidget
 {
@@ -46,22 +41,31 @@ protected:
     cv::Mat marker0ModelView ;
     cv::Mat marker1ModelView ;
     cv::Mat marker2ModelView ;
+    cv::Mat marker3ModelView ;
+    cv::Mat marker4ModelView ;
     bool marker0Detected = false ;
     bool marker1Detected = false ;
     bool marker2Detected = false ;
-    bool    drawAr = false ;
-    bool    detectorInitialized = false ;
-    bool    projectionCalculated = false ;
+    bool marker3Detected = false ;
+    bool marker4Detected = false ;
+    bool drawAr = false ;
+    bool detectorInitialized = false ;
+    bool projectionCalculated = false ;
 
     cv::Mat_<double> persp ;
 
-    void drawAxis();
     void fetchArData() ;
+
+    // Wachstumseffekt
+    float marker0Scale = 0.0 ;
+    float marker1Scale = 0.0 ;
 
     // Textures
     QOpenGLTexture* texMarker0 ;
     QOpenGLTexture* texMarker1 ;
     QOpenGLTexture* texMarker2 ;
+    QOpenGLTexture* texMarker3 ;
+    QOpenGLTexture* texMarker4 ;
 
     // Buffer
     QOpenGLBuffer vboMarker0 ;
@@ -70,13 +74,14 @@ protected:
     QOpenGLBuffer iboMarker1 ;
     QOpenGLBuffer vboMarker2 ;
     QOpenGLBuffer iboMarker2 ;
-
+    QOpenGLBuffer vboMarker3 ;
+    QOpenGLBuffer iboMarker3 ;
+    QOpenGLBuffer vboMarker4 ;
+    QOpenGLBuffer iboMarker4 ;
 
     int attrVertices = 0;
     int unifMatrix = 0 ;
 
-    //QOpenGLBuffer vboArray[5] ;
-    //QOpenGLBuffer iboArray[5] ;
 
     void loadModel() ;
 
@@ -94,15 +99,6 @@ protected:
     void fillBuffer();
     void initializeTextures();
 
-/*
-    void addVertice(int     verticeNo ,
-                     GLfloat x ,
-                     GLfloat y ,
-                     GLfloat z ,
-                     GLfloat r ,
-                     GLfloat g ,
-                     GLfloat b ) ;
-*/
     // Shader
     QOpenGLShaderProgram shaderProgram;
     void initalizeShader();

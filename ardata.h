@@ -21,9 +21,13 @@ public:
     cv::Mat marker0modelView_matrix ;
     cv::Mat marker1modelView_matrix ;
     cv::Mat marker2modelView_matrix ;
+    cv::Mat marker3modelView_matrix ;
+    cv::Mat marker4modelView_matrix ;
     bool marker0Detected ;
     bool marker1Detected ;
     bool marker2Detected ;
+    bool marker3Detected ;
+    bool marker4Detected ;
 
 
 

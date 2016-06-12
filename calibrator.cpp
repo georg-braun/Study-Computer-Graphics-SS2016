@@ -10,7 +10,6 @@ Calibrator::Calibrator()
     capWebcam.open(0);                  // associate the capture object to the default webcam
 
     if(capWebcam.isOpened() == false) {                 // if unsuccessful
-       exitProgram();                                  // and exit program
        return;                                         //
     }
 
@@ -97,7 +96,6 @@ void Calibrator::calibration() {
 
         bool blnFrameReadSuccessfully = capWebcam.read(imageOriginal);
         if (!blnFrameReadSuccessfully || imageOriginal.empty()) {                            // if we did not get a frame
-            exitProgram();                                                              // and exit program
             return;                                                                     //
         }
         else {
@@ -181,8 +179,3 @@ const bool Calibrator::saveCameraParams(const std::string &filename, cv::Size im
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-void Calibrator::exitProgram() {
-    if(qCalibrationTimer->isActive()) qCalibrationTimer->stop();          // if timer is running, stop timer
-  //  QApplication::quit();                           // and exit program
-}
