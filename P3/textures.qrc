@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>mercurymap.jpg</file>
+        <file>Maps/earthmap1k.jpg</file>
+        <file>Maps/jupitermap.jpg</file>
+        <file>Maps/marsmap1k.jpg</file>
+        <file>Maps/mercurymap.jpg</file>
+        <file>Maps/neptunemap.jpg</file>
+        <file>Maps/saturnmap.jpg</file>
+        <file>Maps/sunmap.jpg</file>
+        <file>Maps/uranusmap.jpg</file>
+        <file>Maps/venusmap.jpg</file>
+        <file>Maps/deimos.jpg</file>
+        <file>Maps/mond.jpg</file>
+        <file>Maps/phobos.jpg</file>
+    </qresource>
+</RCC>
