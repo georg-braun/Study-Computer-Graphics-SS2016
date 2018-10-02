@@ -1,4 +1,4 @@
-#P5 - Project Augmented Reality Application
+# P5 - Project Augmented Reality Application
 
 A augmented reality application with a combination of C++, OpenGL, OpenCV and the ArUco library.
 
