@@ -9,6 +9,9 @@ In addition to that I implemented a litter shader to visualize a blend effect fo
 
 ## Example
 
+![Alt text](ARDemoWuerfel.gif)
+![Alt text](ArDemoObjects.gif)
+
 ### OpenCV/ArUco and OpenGL image
 
 ![Alt text](ArExample.JPG?raw=true)
